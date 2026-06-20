@@ -290,9 +290,14 @@
     position: fixed; bottom: 72px; left: 0; right: 0;
     padding: 16px 20px; display: flex; align-items: center;
     justify-content: space-between; gap: 12px;
-    transform: translateY(120%); transition: transform 0.3s ease; z-index: 200;
+    transform: translateY(40px); opacity: 0;
+    visibility: hidden; pointer-events: none;
+    transition: transform 0.3s ease, opacity 0.3s ease, visibility 0.3s; z-index: 200;
   }
-  .feedback-bar.show { transform: translateY(0); }
+  .feedback-bar.show {
+    transform: translateY(0); opacity: 1;
+    visibility: visible; pointer-events: auto;
+  }
   .feedback-bar.correct-fb { background: rgba(20,60,30,0.97); border-top: 2px solid var(--green); }
   .feedback-bar.wrong-fb { background: rgba(60,20,20,0.97); border-top: 2px solid var(--red); }
   .fb-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
@@ -2897,8 +2902,18 @@ function cycleDifficulty() {
 // ══════════════════════════════════════════════
 //  INIT
 // ══════════════════════════════════════════════
+// Force-hide the feedback bar immediately on script load, before anything
+// else runs. This covers the case where Telegram's WebView restores a
+// previous DOM snapshot (app minimized mid-exercise) instead of doing a
+// full fresh load — without this, a leftover "show" class from the last
+// session can render the banner before any JS navigation logic executes.
+(function forceHideFeedbackBar() {
+  const bar = document.getElementById('feedback-bar');
+  if (bar) bar.classList.remove('show');
+})();
+
 loadState();
-renderHome();
+showScreen('home');
 renderLessons();
 renderGrammar('a1');
 </script>
