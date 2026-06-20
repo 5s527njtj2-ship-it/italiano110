@@ -1,0 +1,2906 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Italiano — учи итальянский</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  :root {
+    --bg: #0f0f13;
+    --surface: #1a1a24;
+    --surface2: #23232f;
+    --surface3: #2c2c3a;
+    --border: rgba(255,255,255,0.08);
+    --accent: #6c63ff;
+    --accent2: #a78bfa;
+    --accent3: #38bdf8;
+    --green: #4ade80;
+    --amber: #fbbf24;
+    --red: #f87171;
+    --text: #f1f0ff;
+    --text2: #9b9aaa;
+    --text3: #6b6a7a;
+    --radius: 16px;
+    --radius-sm: 10px;
+    --font: -apple-system, 'SF Pro Display', 'Segoe UI', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+    padding-bottom: 80px;
+  }
+  /* ── SCREENS ── */
+  .screen { display: none; padding: 0 16px; animation: fadeIn 0.25s ease; }
+  .screen.active { display: block; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+
+  /* ── BOTTOM NAV ── */
+  .nav {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: var(--surface);
+    border-top: 0.5px solid var(--border);
+    display: flex; justify-content: space-around; align-items: center;
+    padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
+    z-index: 100;
+  }
+  .nav-btn {
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    background: none; border: none; color: var(--text3);
+    font-size: 10px; font-family: var(--font); cursor: pointer;
+    padding: 4px 14px; border-radius: 12px; transition: all 0.2s;
+  }
+  .nav-btn svg { width: 22px; height: 22px; stroke-width: 1.8; }
+  .nav-btn.active { color: var(--accent2); }
+  .nav-btn.active svg { stroke: var(--accent2); }
+  .nav-btn svg { stroke: currentColor; fill: none; }
+
+  /* ── HOME ── */
+  .home-header {
+    padding: 20px 0 16px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .greeting { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+  .greeting span { color: var(--accent2); }
+  .streak-pill {
+    background: linear-gradient(135deg, #f97316, #fbbf24);
+    border-radius: 20px; padding: 6px 12px;
+    display: flex; align-items: center; gap: 5px;
+    font-size: 13px; font-weight: 600; color: #1a0a00;
+  }
+  .level-card {
+    background: linear-gradient(135deg, var(--accent) 0%, #8b5cf6 100%);
+    border-radius: var(--radius); padding: 20px;
+    margin-bottom: 16px; position: relative; overflow: hidden;
+  }
+  .level-card::after {
+    content: '🇮🇹';
+    position: absolute; right: -10px; top: -10px;
+    font-size: 80px; opacity: 0.12; transform: rotate(15deg);
+  }
+  .level-card .label { font-size: 11px; text-transform: uppercase; letter-spacing: 1.2px; opacity: 0.7; margin-bottom: 4px; }
+  .level-card .level-name { font-size: 28px; font-weight: 800; letter-spacing: -1px; }
+  .level-card .level-sub { font-size: 13px; opacity: 0.8; margin-top: 2px; }
+  .xp-bar-wrap { margin-top: 14px; }
+  .xp-bar-bg { background: rgba(255,255,255,0.2); border-radius: 20px; height: 6px; }
+  .xp-bar { background: white; border-radius: 20px; height: 6px; transition: width 0.6s ease; }
+  .xp-label { display: flex; justify-content: space-between; font-size: 11px; opacity: 0.7; margin-top: 5px; }
+
+  /* Topics grid */
+  .section-title { font-size: 13px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 1px; margin: 20px 0 10px; display: flex; align-items: center; justify-content: space-between; }
+  .topics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .topic-card {
+    background: var(--surface); border-radius: var(--radius);
+    padding: 16px; cursor: pointer; transition: transform 0.15s, background 0.15s;
+    border: 0.5px solid var(--border); position: relative; overflow: hidden;
+  }
+  .topic-card:active { transform: scale(0.97); background: var(--surface2); }
+  .topic-card .t-emoji { font-size: 28px; display: block; margin-bottom: 8px; }
+  .topic-card .t-name { font-size: 14px; font-weight: 600; }
+  .topic-card .t-count { font-size: 11px; color: var(--text3); margin-top: 2px; }
+  .topic-card .t-progress { margin-top: 10px; background: var(--surface3); border-radius: 20px; height: 3px; }
+  .topic-card .t-bar { background: var(--accent2); border-radius: 20px; height: 3px; }
+  .topic-card.locked { opacity: 0.45; }
+  .topic-card .lock-badge {
+    position: absolute; top: 10px; right: 10px;
+    background: var(--surface3); border-radius: 8px; padding: 3px 6px;
+    font-size: 11px; color: var(--text3);
+  }
+
+  /* Daily challenges */
+  .challenges-row { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+  .challenges-row::-webkit-scrollbar { display: none; }
+  .challenge-chip {
+    flex-shrink: 0; background: var(--surface); border: 0.5px solid var(--border);
+    border-radius: 24px; padding: 10px 16px;
+    display: flex; align-items: center; gap: 8px;
+    cursor: pointer; transition: background 0.15s;
+    font-size: 13px; font-weight: 500;
+  }
+  .challenge-chip:active { background: var(--surface2); }
+  .challenge-chip .ch-icon { font-size: 18px; }
+  .challenge-chip.done { border-color: var(--green); color: var(--green); }
+
+  /* ── LESSONS ── */
+  .lessons-header { padding: 20px 0 16px; }
+  .lessons-title { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+  .level-jump-row { display: flex; gap: 8px; overflow-x: auto; padding: 10px 0 4px; scrollbar-width: none; }
+  .level-jump-row::-webkit-scrollbar { display: none; }
+  .level-jump-btn {
+    flex-shrink: 0; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 16px; padding: 6px 12px; font-size: 12px; font-weight: 600;
+    color: var(--text2); cursor: pointer; font-family: var(--font);
+  }
+  .level-jump-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+  .path-container { position: relative; padding: 10px 0; }
+  .path-line {
+    position: absolute; left: 28px; top: 0; bottom: 0;
+    width: 2px; background: var(--surface3);
+  }
+  .lesson-item {
+    display: flex; align-items: center; gap: 14px;
+    padding: 12px 0; cursor: pointer; position: relative;
+  }
+  .lesson-dot {
+    width: 56px; height: 56px; border-radius: 50%;
+    background: var(--surface2); border: 2px solid var(--surface3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; flex-shrink: 0; transition: all 0.2s; z-index: 1;
+  }
+  .lesson-dot.done { background: var(--accent); border-color: var(--accent); }
+  .lesson-dot.current { background: var(--surface2); border-color: var(--accent2); box-shadow: 0 0 0 4px rgba(167,139,250,0.2); animation: pulse 2s infinite; }
+  .lesson-dot.locked { opacity: 0.4; }
+  @keyframes pulse { 0%,100%{box-shadow:0 0 0 4px rgba(167,139,250,0.2);} 50%{box-shadow:0 0 0 8px rgba(167,139,250,0.1);} }
+  .lesson-info { flex: 1; }
+  .lesson-name { font-size: 15px; font-weight: 600; }
+  .lesson-desc { font-size: 12px; color: var(--text3); margin-top: 2px; }
+  .lesson-chips { display: flex; gap: 5px; margin-top: 6px; flex-wrap: wrap; }
+  .lesson-chip {
+    font-size: 10px; padding: 2px 8px; border-radius: 10px;
+    background: var(--surface3); color: var(--text2);
+  }
+  .lesson-chip.xp { background: rgba(108,99,255,0.2); color: var(--accent2); }
+  .unit-badge {
+    background: var(--surface2); border-radius: 24px; padding: 8px 16px;
+    text-align: center; font-size: 11px; font-weight: 700; color: var(--text3);
+    text-transform: uppercase; letter-spacing: 1.5px;
+    margin: 8px 0; border: 0.5px solid var(--border);
+  }
+
+  /* ── EXERCISE SCREEN ── */
+  .ex-header {
+    display: flex; align-items: center; gap: 12px;
+    padding: 16px 0 20px;
+  }
+  .ex-back {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--surface); border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text); font-size: 18px;
+  }
+  .ex-progress-bar {
+    flex: 1; background: var(--surface2); border-radius: 20px; height: 8px;
+  }
+  .ex-progress-fill {
+    background: var(--accent); border-radius: 20px; height: 8px;
+    transition: width 0.4s ease;
+  }
+  .ex-lives { display: flex; gap: 4px; }
+  .ex-lives span { font-size: 18px; transition: opacity 0.3s; }
+  .ex-lives span.lost { opacity: 0.25; }
+
+  .ex-body { padding-bottom: 100px; }
+  .ex-question-type {
+    font-size: 11px; font-weight: 700; color: var(--accent2);
+    text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px;
+  }
+  .ex-question {
+    font-size: 22px; font-weight: 700; line-height: 1.3;
+    letter-spacing: -0.5px; margin-bottom: 6px;
+  }
+  .ex-question em { color: var(--accent2); font-style: normal; }
+  .ex-hint { font-size: 13px; color: var(--text3); margin-bottom: 24px; }
+
+  /* Multiple choice */
+  .options-list { display: flex; flex-direction: column; gap: 10px; }
+  .option-btn {
+    background: var(--surface); border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm); padding: 14px 18px;
+    text-align: left; color: var(--text); font-size: 15px;
+    cursor: pointer; transition: all 0.15s; font-family: var(--font);
+    display: flex; align-items: center; gap: 12px; width: 100%;
+  }
+  .option-btn .opt-letter {
+    width: 28px; height: 28px; border-radius: 8px; background: var(--surface2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; color: var(--text2); flex-shrink: 0;
+  }
+  .option-btn:active { transform: scale(0.99); background: var(--surface2); }
+  .option-btn.selected { border-color: var(--accent2); background: rgba(167,139,250,0.08); }
+  .option-btn.correct { border-color: var(--green); background: rgba(74,222,128,0.1); color: var(--green); }
+  .option-btn.wrong { border-color: var(--red); background: rgba(248,113,113,0.1); color: var(--red); }
+  .option-btn.correct .opt-letter { background: rgba(74,222,128,0.2); color: var(--green); }
+  .option-btn.wrong .opt-letter { background: rgba(248,113,113,0.2); color: var(--red); }
+  .option-btn:disabled { cursor: default; }
+
+  /* Fill in blank */
+  .fill-input {
+    width: 100%; background: var(--surface); border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm); padding: 16px; font-size: 20px;
+    color: var(--text); font-family: var(--font); outline: none;
+    transition: border-color 0.2s;
+  }
+  .fill-input:focus { border-color: var(--accent2); }
+  .fill-input.correct { border-color: var(--green); color: var(--green); }
+  .fill-input.wrong { border-color: var(--red); color: var(--red); }
+
+  /* Word order */
+  .word-bank { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; min-height: 50px; }
+  .word-slot-area {
+    background: var(--surface); border: 1.5px dashed var(--border);
+    border-radius: var(--radius-sm); padding: 14px;
+    display: flex; flex-wrap: wrap; gap: 8px;
+    min-height: 54px; margin-bottom: 16px;
+  }
+  .word-chip {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 20px; padding: 8px 14px;
+    font-size: 15px; cursor: pointer; transition: all 0.15s;
+    color: var(--text);
+  }
+  .word-chip:active { transform: scale(0.96); }
+  .word-chip.in-slot { background: rgba(108,99,255,0.2); border-color: var(--accent); }
+  .word-chip.correct { background: rgba(74,222,128,0.15); border-color: var(--green); color: var(--green); }
+  .word-chip.wrong { background: rgba(248,113,113,0.15); border-color: var(--red); color: var(--red); }
+  .word-chip.hidden-chip { visibility: hidden; }
+
+  /* Flash card */
+  .flashcard {
+    width: 100%; background: var(--surface);
+    border: 0.5px solid var(--border); border-radius: var(--radius);
+    padding: 40px 24px; text-align: center;
+    margin-bottom: 24px; min-height: 180px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    cursor: pointer;
+  }
+  .flashcard .card-word { font-size: 36px; font-weight: 700; letter-spacing: -1px; }
+  .flashcard .card-translation { font-size: 18px; color: var(--text2); margin-top: 8px; display: none; }
+  .flashcard .card-note { font-size: 13px; color: var(--text3); margin-top: 12px; font-style: italic; display: none; }
+  .flashcard .card-hint { font-size: 12px; color: var(--text3); margin-top: 20px; }
+  .flashcard.flipped .card-translation { display: block; }
+  .flashcard.flipped .card-note { display: block; }
+  .flashcard.flipped .card-hint { display: none; }
+  .flashcard-actions { display: flex; gap: 12px; }
+  .fc-btn {
+    flex: 1; padding: 14px; border-radius: var(--radius-sm); border: none;
+    font-size: 15px; font-weight: 600; cursor: pointer; font-family: var(--font);
+    transition: transform 0.15s;
+  }
+  .fc-btn:active { transform: scale(0.97); }
+  .fc-btn.hard { background: rgba(248,113,113,0.15); color: var(--red); }
+  .fc-btn.ok { background: rgba(251,191,36,0.15); color: var(--amber); }
+  .fc-btn.easy { background: rgba(74,222,128,0.15); color: var(--green); }
+
+  /* Feedback banner */
+  .feedback-bar {
+    position: fixed; bottom: 72px; left: 0; right: 0;
+    padding: 16px 20px; display: flex; align-items: center;
+    justify-content: space-between; gap: 12px;
+    transform: translateY(120%); transition: transform 0.3s ease; z-index: 200;
+  }
+  .feedback-bar.show { transform: translateY(0); }
+  .feedback-bar.correct-fb { background: rgba(20,60,30,0.97); border-top: 2px solid var(--green); }
+  .feedback-bar.wrong-fb { background: rgba(60,20,20,0.97); border-top: 2px solid var(--red); }
+  .fb-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .fb-icon { font-size: 24px; flex-shrink: 0; }
+  .fb-text { min-width: 0; }
+  .fb-text .fb-title { font-size: 15px; font-weight: 700; }
+  .fb-text .fb-sub { font-size: 12px; color: var(--text2); margin-top: 2px; overflow-wrap: break-word; }
+  .fb-continue {
+    background: var(--accent); color: white; border: none;
+    border-radius: 24px; padding: 10px 20px;
+    font-size: 14px; font-weight: 600; cursor: pointer;
+    font-family: var(--font); white-space: nowrap; flex-shrink: 0;
+    transition: transform 0.15s;
+  }
+  .fb-continue:active { transform: scale(0.97); }
+
+  /* CTA button */
+  .cta-btn {
+    width: 100%; background: var(--accent); color: white; border: none;
+    border-radius: var(--radius-sm); padding: 16px; font-size: 16px;
+    font-weight: 700; cursor: pointer; font-family: var(--font);
+    transition: transform 0.15s, opacity 0.15s; letter-spacing: -0.2px;
+  }
+  .cta-btn:active { transform: scale(0.98); opacity: 0.9; }
+  .cta-btn:disabled { opacity: 0.4; cursor: default; }
+  .cta-btn.outline {
+    background: transparent; color: var(--accent2);
+    border: 1.5px solid var(--accent2);
+  }
+
+  /* ── VOCABULARY ── */
+  .vocab-filter { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 12px; scrollbar-width: none; }
+  .vocab-filter::-webkit-scrollbar { display: none; }
+  .filter-btn {
+    flex-shrink: 0; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 20px; padding: 7px 14px; font-size: 13px; color: var(--text2);
+    cursor: pointer; font-family: var(--font); transition: all 0.15s;
+  }
+  .filter-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+  .vocab-search {
+    width: 100%; background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 12px 16px; font-size: 15px;
+    color: var(--text); font-family: var(--font); outline: none; margin-bottom: 12px;
+  }
+  .vocab-search:focus { border-color: var(--accent2); }
+  .vocab-list { display: flex; flex-direction: column; gap: 8px; }
+  .vocab-card {
+    background: var(--surface); border: 0.5px solid var(--border);
+    border-radius: var(--radius-sm); padding: 14px 16px;
+    display: flex; align-items: center; gap: 12px; cursor: pointer;
+    transition: background 0.15s; width: 100%; text-align: left;
+  }
+  .vocab-card:active { background: var(--surface2); }
+  .vocab-card .vc-level {
+    width: 32px; height: 32px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; flex-shrink: 0;
+  }
+  .vc-level.a1 { background: rgba(74,222,128,0.15); color: var(--green); }
+  .vc-level.a2 { background: rgba(74,222,128,0.1); color: var(--green); }
+  .vc-level.b1 { background: rgba(251,191,36,0.15); color: var(--amber); }
+  .vc-level.b2 { background: rgba(251,191,36,0.1); color: var(--amber); }
+  .vc-level.c1 { background: rgba(108,99,255,0.2); color: var(--accent2); }
+  .vocab-card .vc-word { font-size: 16px; font-weight: 600; }
+  .vocab-card .vc-trans { font-size: 13px; color: var(--text3); margin-top: 1px; }
+  .vocab-card .vc-right { margin-left: auto; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+  .vc-status { width: 8px; height: 8px; border-radius: 50%; }
+  .vc-status.new { background: var(--accent3); }
+  .vc-status.learning { background: var(--amber); }
+  .vc-status.mastered { background: var(--green); }
+  .vocab-load-more {
+    width: 100%; background: var(--surface2); border: 0.5px solid var(--border);
+    border-radius: var(--radius-sm); padding: 12px; color: var(--text2);
+    font-size: 13px; cursor: pointer; font-family: var(--font); margin-top: 8px;
+  }
+
+  /* ── GRAMMAR ── */
+  .grammar-tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 16px; scrollbar-width: none; }
+  .grammar-tabs::-webkit-scrollbar { display: none; }
+  .g-tab {
+    flex-shrink: 0; padding: 8px 16px; text-align: center; font-size: 13px;
+    border-radius: 16px; cursor: pointer; font-family: var(--font);
+    background: var(--surface2); border: 1px solid transparent; color: var(--text3); transition: all 0.2s; font-weight: 500;
+  }
+  .g-tab.active { background: var(--accent); color: white; font-weight: 600; }
+  .grammar-section { margin-bottom: 20px; }
+  .grammar-rule {
+    background: var(--surface); border-radius: var(--radius);
+    overflow: hidden; margin-bottom: 10px;
+    border: 0.5px solid var(--border);
+  }
+  .grammar-rule-header {
+    padding: 14px 16px; display: flex; align-items: center;
+    justify-content: space-between; cursor: pointer; width: 100%; background: none; border: none; text-align: left; color: var(--text); font-family: var(--font);
+  }
+  .grammar-rule-header .gr-title { font-size: 15px; font-weight: 600; }
+  .grammar-rule-header .gr-meta { font-size: 11px; color: var(--text3); margin-top: 2px; }
+  .grammar-rule-body {
+    padding: 0 16px 16px; display: none;
+    border-top: 0.5px solid var(--border);
+  }
+  .grammar-rule-body.open { display: block; }
+  .grammar-rule-body p { font-size: 14px; color: var(--text2); line-height: 1.6; padding-top: 12px; }
+  .grammar-table-wrap { overflow-x: auto; }
+  .grammar-table {
+    width: 100%; border-collapse: collapse; margin-top: 12px;
+    font-size: 13px; min-width: 280px;
+  }
+  .grammar-table th {
+    background: var(--surface2); padding: 8px 10px;
+    text-align: left; font-size: 11px; color: var(--text3);
+    font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; white-space: nowrap;
+  }
+  .grammar-table td { padding: 8px 10px; border-bottom: 0.5px solid var(--border); white-space: nowrap; }
+  .grammar-table tr:last-child td { border-bottom: none; }
+  .grammar-table .it { color: var(--accent2); font-weight: 500; }
+  .example-phrase {
+    background: var(--surface2); border-radius: 8px; padding: 10px 12px; margin-top: 10px;
+    font-size: 13px;
+  }
+  .example-phrase .it-ex { color: var(--accent2); font-weight: 500; }
+  .example-phrase .ru-ex { color: var(--text3); font-size: 12px; margin-top: 3px; }
+
+  /* ── PROFILE ── */
+  .profile-header {
+    padding: 20px 0 16px; text-align: center;
+  }
+  .avatar-wrap {
+    width: 72px; height: 72px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    margin: 0 auto 10px; display: flex; align-items: center; justify-content: center;
+    font-size: 28px;
+  }
+  .profile-name { font-size: 20px; font-weight: 700; }
+  .profile-sub { font-size: 13px; color: var(--text3); margin-top: 3px; }
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 16px 0; }
+  .stat-card {
+    background: var(--surface); border: 0.5px solid var(--border);
+    border-radius: var(--radius-sm); padding: 14px;
+  }
+  .stat-card .stat-val { font-size: 26px; font-weight: 800; letter-spacing: -1px; color: var(--accent2); }
+  .stat-card .stat-lbl { font-size: 12px; color: var(--text3); margin-top: 3px; }
+  .achievement-list { display: flex; flex-direction: column; gap: 10px; }
+  .achievement {
+    background: var(--surface); border: 0.5px solid var(--border);
+    border-radius: var(--radius-sm); padding: 14px 16px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .achievement .ach-icon {
+    width: 44px; height: 44px; border-radius: 12px;
+    background: var(--surface2); display: flex; align-items: center;
+    justify-content: center; font-size: 22px; flex-shrink: 0;
+  }
+  .achievement.unlocked .ach-icon { background: rgba(108,99,255,0.15); }
+  .achievement.locked { opacity: 0.4; }
+  .achievement .ach-name { font-size: 14px; font-weight: 600; }
+  .achievement .ach-desc { font-size: 12px; color: var(--text3); margin-top: 2px; }
+  .setting-row {
+    background: var(--surface); border: 0.5px solid var(--border);
+    border-radius: var(--radius-sm); padding: 14px 16px;
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .setting-row .sr-left { font-size: 14px; }
+  .setting-row .sr-sub { font-size: 12px; color: var(--text3); margin-top: 2px; }
+  .toggle {
+    width: 44px; height: 26px; border-radius: 13px;
+    background: var(--surface3); position: relative; cursor: pointer;
+    transition: background 0.2s; border: none; flex-shrink: 0;
+  }
+  .toggle.on { background: var(--accent); }
+  .toggle::after {
+    content: ''; width: 20px; height: 20px; border-radius: 50%;
+    background: white; position: absolute; top: 3px; left: 3px;
+    transition: transform 0.2s;
+  }
+  .toggle.on::after { transform: translateX(18px); }
+
+  /* Result screen */
+  .result-screen { text-align: center; padding: 40px 16px; }
+  .result-emoji { font-size: 64px; margin-bottom: 16px; display: block; animation: bounce 0.6s ease; }
+  @keyframes bounce { 0%{transform:scale(0);} 60%{transform:scale(1.2);} 100%{transform:scale(1);} }
+  .result-title { font-size: 28px; font-weight: 800; letter-spacing: -1px; margin-bottom: 6px; }
+  .result-sub { font-size: 15px; color: var(--text2); margin-bottom: 32px; }
+  .result-stats { display: flex; justify-content: center; gap: 24px; margin-bottom: 32px; }
+  .rs-item { text-align: center; }
+  .rs-val { font-size: 28px; font-weight: 800; color: var(--accent2); }
+  .rs-lbl { font-size: 12px; color: var(--text3); margin-top: 2px; }
+  .xp-flash {
+    background: rgba(108,99,255,0.15); border: 1px solid var(--accent);
+    border-radius: 24px; padding: 10px 20px; display: inline-flex;
+    align-items: center; gap: 8px; font-size: 16px; font-weight: 700;
+    color: var(--accent2); margin-bottom: 32px; animation: glow 1.5s ease infinite alternate;
+  }
+  @keyframes glow { from{box-shadow:0 0 8px rgba(108,99,255,0.2);} to{box-shadow:0 0 24px rgba(108,99,255,0.4);} }
+
+  /* Scrollbar for desktop */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 2px; }
+</style>
+</head>
+<body>
+<!-- HOME -->
+<div id="screen-home" class="screen active">
+  <div class="home-header">
+    <div>
+      <div class="greeting">Ciao, <span id="user-name">друг</span>! 👋</div>
+      <div style="font-size:13px;color:var(--text3);margin-top:3px;">Продолжай учить итальянский</div>
+    </div>
+    <div class="streak-pill">🔥 <span id="streak-count">0</span></div>
+  </div>
+
+  <div class="level-card">
+    <div class="label">Твой уровень</div>
+    <div class="level-name" id="home-level">A1</div>
+    <div class="level-sub" id="home-level-name">Principiante · Начинающий</div>
+    <div class="xp-bar-wrap">
+      <div class="xp-bar-bg"><div class="xp-bar" id="home-xp-bar" style="width:0%"></div></div>
+      <div class="xp-label">
+        <span id="home-xp-current">0 XP</span>
+        <span id="home-xp-next">до A2: 1000 XP</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title">Ежедневные задания</div>
+  <div class="challenges-row">
+    <div class="challenge-chip" id="ch-words" onclick="startChallenge('words')">
+      <span class="ch-icon">📚</span> 10 слов
+    </div>
+    <div class="challenge-chip" id="ch-listen" onclick="startChallenge('listen')">
+      <span class="ch-icon">🎧</span> Аудио
+    </div>
+    <div class="challenge-chip" id="ch-grammar" onclick="showScreen('grammar')">
+      <span class="ch-icon">📝</span> Грамматика
+    </div>
+    <div class="challenge-chip" id="ch-speak" onclick="startChallenge('flashcard')">
+      <span class="ch-icon">🗣️</span> Карточки
+    </div>
+  </div>
+
+  <div class="section-title">Темы <span style="font-size:11px;color:var(--text3);text-transform:none;font-weight:400;" id="topics-level-label">для уровня A1</span></div>
+  <div class="topics-grid" id="topics-grid"></div>
+</div>
+
+<!-- LESSONS -->
+<div id="screen-lessons" class="screen">
+  <div class="lessons-header">
+    <div class="lessons-title">Уроки</div>
+    <div style="font-size:13px;color:var(--text3);margin-top:2px;" id="lessons-subtitle">Путь к C1</div>
+  </div>
+  <div class="level-jump-row" id="level-jump-row"></div>
+  <div class="path-container">
+    <div class="path-line"></div>
+    <div id="lesson-path"></div>
+  </div>
+</div>
+
+<!-- EXERCISE -->
+<div id="screen-exercise" class="screen">
+  <div class="ex-header">
+    <button class="ex-back" onclick="exitExercise()">✕</button>
+    <div class="ex-progress-bar"><div class="ex-progress-fill" id="ex-progress-fill" style="width:0%"></div></div>
+    <div class="ex-lives" id="ex-lives">
+      <span>❤️</span><span>❤️</span><span>❤️</span>
+    </div>
+  </div>
+  <div class="ex-body" id="ex-body"></div>
+  <div style="position:fixed;bottom:80px;left:16px;right:16px;" id="ex-cta-area"></div>
+</div>
+
+<!-- RESULT -->
+<div id="screen-result" class="screen">
+  <div class="result-screen">
+    <span class="result-emoji" id="result-emoji">🎉</span>
+    <div class="result-title" id="result-title">Отлично!</div>
+    <div class="result-sub" id="result-sub">Урок завершён</div>
+    <div class="result-stats">
+      <div class="rs-item"><div class="rs-val" id="res-accuracy">100%</div><div class="rs-lbl">Точность</div></div>
+      <div class="rs-item"><div class="rs-val" id="res-time">0:30</div><div class="rs-lbl">Время</div></div>
+      <div class="rs-item"><div class="rs-val" id="res-streak">1</div><div class="rs-lbl">Серия</div></div>
+    </div>
+    <div class="xp-flash">✨ +<span id="res-xp">50</span> XP получено!</div>
+    <button class="cta-btn" style="margin-bottom:12px;" onclick="showScreen('home')">На главную</button>
+    <button class="cta-btn outline" onclick="continueLesson()">Ещё упражнения</button>
+  </div>
+</div>
+
+<!-- VOCABULARY -->
+<div id="screen-vocab" class="screen">
+  <div style="padding:20px 0 12px;">
+    <div style="font-size:22px;font-weight:700;letter-spacing:-0.5px;">Словарь</div>
+    <div style="font-size:13px;color:var(--text3);margin-top:2px;" id="vocab-count-label">0 слов изучено</div>
+  </div>
+  <input type="search" class="vocab-search" placeholder="Поиск слова..." oninput="filterVocab(this.value)" id="vocab-search-input">
+  <div class="vocab-filter" id="vocab-filter">
+    <button class="filter-btn active" onclick="setVocabFilter('all', this)">Все</button>
+    <button class="filter-btn" onclick="setVocabFilter('A1', this)">A1</button>
+    <button class="filter-btn" onclick="setVocabFilter('A2', this)">A2</button>
+    <button class="filter-btn" onclick="setVocabFilter('B1', this)">B1</button>
+    <button class="filter-btn" onclick="setVocabFilter('B2', this)">B2</button>
+    <button class="filter-btn" onclick="setVocabFilter('C1', this)">C1</button>
+    <button class="filter-btn" onclick="setVocabFilter('new', this)">Новые</button>
+    <button class="filter-btn" onclick="setVocabFilter('mastered', this)">Выучены</button>
+  </div>
+  <div class="vocab-list" id="vocab-list"></div>
+</div>
+
+<!-- GRAMMAR -->
+<div id="screen-grammar" class="screen">
+  <div style="padding:20px 0 12px;">
+    <div style="font-size:22px;font-weight:700;letter-spacing:-0.5px;">Грамматика</div>
+    <div style="font-size:13px;color:var(--text3);margin-top:2px;">36 правил от A1 до C1</div>
+  </div>
+  <div class="grammar-tabs" id="grammar-tabs">
+    <button class="g-tab active" onclick="setGrammarTab('a1',this)">A1</button>
+    <button class="g-tab" onclick="setGrammarTab('a2',this)">A2</button>
+    <button class="g-tab" onclick="setGrammarTab('b1',this)">B1</button>
+    <button class="g-tab" onclick="setGrammarTab('b2',this)">B2</button>
+    <button class="g-tab" onclick="setGrammarTab('c1',this)">C1</button>
+  </div>
+  <div id="grammar-content"></div>
+</div>
+
+<!-- PROFILE -->
+<div id="screen-profile" class="screen">
+  <div class="profile-header">
+    <div class="avatar-wrap">🇮🇹</div>
+    <div class="profile-name" id="profile-name">Студент</div>
+    <div class="profile-sub" id="profile-level-badge">A1 · Principiante</div>
+  </div>
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-val" id="stat-xp">0</div><div class="stat-lbl">Всего XP</div></div>
+    <div class="stat-card"><div class="stat-val" id="stat-streak">0</div><div class="stat-lbl">Дней подряд 🔥</div></div>
+    <div class="stat-card"><div class="stat-val" id="stat-words">0</div><div class="stat-lbl">Слов изучено</div></div>
+    <div class="stat-card"><div class="stat-val" id="stat-lessons">0</div><div class="stat-lbl">Уроков пройдено</div></div>
+  </div>
+  <div class="section-title">Достижения <span id="ach-count" style="font-size:11px;color:var(--text3);text-transform:none;font-weight:400;"></span></div>
+  <div class="achievement-list" id="achievement-list"></div>
+  <div class="section-title" style="margin-top:20px;">Настройки</div>
+  <div class="setting-row">
+    <div><div class="sr-left">Напоминания</div><div class="sr-sub">Ежедневные уведомления</div></div>
+    <button class="toggle on" id="toggle-remind" onclick="toggleSetting(this)"></button>
+  </div>
+  <div class="setting-row">
+    <div><div class="sr-left">Озвучка</div><div class="sr-sub">Произношение слов</div></div>
+    <button class="toggle on" id="toggle-sound" onclick="toggleSetting(this)"></button>
+  </div>
+  <div class="setting-row">
+    <div><div class="sr-left">Сложность</div><div class="sr-sub" id="diff-label">Стандартная</div></div>
+    <button onclick="cycleDifficulty()" style="background:var(--surface3);border:none;color:var(--text2);border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer;font-family:var(--font);">Сменить</button>
+  </div>
+  <div class="setting-row">
+    <div><div class="sr-left">Сбросить прогресс</div><div class="sr-sub">Удалить весь сохранённый прогресс</div></div>
+    <button onclick="resetProgress()" style="background:rgba(248,113,113,0.12);border:none;color:var(--red);border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer;font-family:var(--font);">Сбросить</button>
+  </div>
+  <div style="height:20px;"></div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="nav">
+  <button class="nav-btn active" id="nav-home" onclick="showScreen('home')">
+    <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    Главная
+  </button>
+  <button class="nav-btn" id="nav-lessons" onclick="showScreen('lessons')">
+    <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+    Уроки
+  </button>
+  <button class="nav-btn" id="nav-vocab" onclick="showScreen('vocab')">
+    <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+    Слова
+  </button>
+  <button class="nav-btn" id="nav-grammar" onclick="showScreen('grammar')">
+    <svg viewBox="0 0 24 24"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+    Грамматика
+  </button>
+  <button class="nav-btn" id="nav-profile" onclick="showScreen('profile')">
+    <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    Профиль
+  </button>
+</nav>
+
+<!-- FEEDBACK BAR -->
+<div class="feedback-bar" id="feedback-bar">
+  <div class="fb-left">
+    <span class="fb-icon" id="fb-icon">✅</span>
+    <div class="fb-text">
+      <div class="fb-title" id="fb-title">Правильно!</div>
+      <div class="fb-sub" id="fb-sub"></div>
+    </div>
+  </div>
+  <button class="fb-continue" onclick="nextQuestion()">Далее →</button>
+</div>
+
+<script>
+const VOCABULARY = [
+// ══════ A1 — greetings (id 1-15) ══════
+{ id:1, it:'ciao', ru:'привет / пока', level:'A1', category:'greetings' },
+{ id:2, it:'buongiorno', ru:'доброе утро', level:'A1', category:'greetings' },
+{ id:3, it:'buonasera', ru:'добрый вечер', level:'A1', category:'greetings' },
+{ id:4, it:'buonanotte', ru:'спокойной ночи', level:'A1', category:'greetings' },
+{ id:5, it:'arrivederci', ru:'до свидания', level:'A1', category:'greetings' },
+{ id:6, it:'grazie', ru:'спасибо', level:'A1', category:'greetings' },
+{ id:7, it:'prego', ru:'пожалуйста / не за что', level:'A1', category:'greetings' },
+{ id:8, it:'scusi', ru:'извините (формально)', level:'A1', category:'greetings' },
+{ id:9, it:'scusa', ru:'извини (неформально)', level:'A1', category:'greetings' },
+{ id:10, it:'sì', ru:'да', level:'A1', category:'greetings' },
+{ id:11, it:'no', ru:'нет', level:'A1', category:'greetings' },
+{ id:12, it:'come stai?', ru:'как дела? (ты)', level:'A1', category:'greetings' },
+{ id:13, it:'come sta?', ru:'как дела? (вы)', level:'A1', category:'greetings' },
+{ id:14, it:'piacere', ru:'приятно познакомиться', level:'A1', category:'greetings' },
+{ id:15, it:'per favore', ru:'пожалуйста (просьба)', level:'A1', category:'greetings' },
+
+// ══════ A1 — numbers (id 16-40) ══════
+{ id:16, it:'zero', ru:'ноль', level:'A1', category:'numbers' },
+{ id:17, it:'uno', ru:'один', level:'A1', category:'numbers' },
+{ id:18, it:'due', ru:'два', level:'A1', category:'numbers' },
+{ id:19, it:'tre', ru:'три', level:'A1', category:'numbers' },
+{ id:20, it:'quattro', ru:'четыре', level:'A1', category:'numbers' },
+{ id:21, it:'cinque', ru:'пять', level:'A1', category:'numbers' },
+{ id:22, it:'sei', ru:'шесть', level:'A1', category:'numbers' },
+{ id:23, it:'sette', ru:'семь', level:'A1', category:'numbers' },
+{ id:24, it:'otto', ru:'восемь', level:'A1', category:'numbers' },
+{ id:25, it:'nove', ru:'девять', level:'A1', category:'numbers' },
+{ id:26, it:'dieci', ru:'десять', level:'A1', category:'numbers' },
+{ id:27, it:'undici', ru:'одиннадцать', level:'A1', category:'numbers' },
+{ id:28, it:'dodici', ru:'двенадцать', level:'A1', category:'numbers' },
+{ id:29, it:'venti', ru:'двадцать', level:'A1', category:'numbers' },
+{ id:30, it:'trenta', ru:'тридцать', level:'A1', category:'numbers' },
+{ id:31, it:'quaranta', ru:'сорок', level:'A1', category:'numbers' },
+{ id:32, it:'cinquanta', ru:'пятьдесят', level:'A1', category:'numbers' },
+{ id:33, it:'cento', ru:'сто', level:'A1', category:'numbers' },
+{ id:34, it:'mille', ru:'тысяча', level:'A1', category:'numbers' },
+{ id:35, it:'primo', ru:'первый', level:'A1', category:'numbers' },
+{ id:36, it:'secondo', ru:'второй', level:'A1', category:'numbers' },
+{ id:37, it:'terzo', ru:'третий', level:'A1', category:'numbers' },
+{ id:38, it:'ultimo', ru:'последний', level:'A1', category:'numbers' },
+{ id:39, it:'mezzo', ru:'половина', level:'A1', category:'numbers' },
+{ id:40, it:'paio', ru:'пара', level:'A1', category:'numbers' },
+
+// ══════ A1 — family (id 41-60) ══════
+{ id:41, it:'madre', ru:'мать', level:'A1', category:'family' },
+{ id:42, it:'padre', ru:'отец', level:'A1', category:'family' },
+{ id:43, it:'fratello', ru:'брат', level:'A1', category:'family' },
+{ id:44, it:'sorella', ru:'сестра', level:'A1', category:'family' },
+{ id:45, it:'figlio', ru:'сын', level:'A1', category:'family' },
+{ id:46, it:'figlia', ru:'дочь', level:'A1', category:'family' },
+{ id:47, it:'nonno', ru:'дедушка', level:'A1', category:'family' },
+{ id:48, it:'nonna', ru:'бабушка', level:'A1', category:'family' },
+{ id:49, it:'zio', ru:'дядя', level:'A1', category:'family' },
+{ id:50, it:'zia', ru:'тётя', level:'A1', category:'family' },
+{ id:51, it:'cugino', ru:'двоюродный брат', level:'A1', category:'family' },
+{ id:52, it:'cugina', ru:'двоюродная сестра', level:'A1', category:'family' },
+{ id:53, it:'marito', ru:'муж', level:'A1', category:'family' },
+{ id:54, it:'moglie', ru:'жена', level:'A1', category:'family' },
+{ id:55, it:'bambino', ru:'ребёнок (мальчик)', level:'A1', category:'family' },
+{ id:56, it:'bambina', ru:'ребёнок (девочка)', level:'A1', category:'family' },
+{ id:57, it:'famiglia', ru:'семья', level:'A1', category:'family' },
+{ id:58, it:'genitori', ru:'родители', level:'A1', category:'family' },
+{ id:59, it:'amico', ru:'друг', level:'A1', category:'family' },
+{ id:60, it:'amica', ru:'подруга', level:'A1', category:'family' },
+
+// ══════ A1 — food (id 61-95) ══════
+{ id:61, it:'pizza', ru:'пицца', level:'A1', category:'food' },
+{ id:62, it:'pasta', ru:'паста / макароны', level:'A1', category:'food' },
+{ id:63, it:'pane', ru:'хлеб', level:'A1', category:'food' },
+{ id:64, it:'acqua', ru:'вода', level:'A1', category:'food' },
+{ id:65, it:'vino', ru:'вино', level:'A1', category:'food' },
+{ id:66, it:'caffè', ru:'кофе', level:'A1', category:'food' },
+{ id:67, it:'latte', ru:'молоко', level:'A1', category:'food' },
+{ id:68, it:'formaggio', ru:'сыр', level:'A1', category:'food' },
+{ id:69, it:'carne', ru:'мясо', level:'A1', category:'food' },
+{ id:70, it:'pesce', ru:'рыба', level:'A1', category:'food' },
+{ id:71, it:'uovo', ru:'яйцо', level:'A1', category:'food' },
+{ id:72, it:'frutta', ru:'фрукты', level:'A1', category:'food' },
+{ id:73, it:'verdura', ru:'овощи', level:'A1', category:'food' },
+{ id:74, it:'mela', ru:'яблоко', level:'A1', category:'food' },
+{ id:75, it:'banana', ru:'банан', level:'A1', category:'food' },
+{ id:76, it:'arancia', ru:'апельсин', level:'A1', category:'food' },
+{ id:77, it:'pomodoro', ru:'помидор', level:'A1', category:'food' },
+{ id:78, it:'insalata', ru:'салат', level:'A1', category:'food' },
+{ id:79, it:'zucchero', ru:'сахар', level:'A1', category:'food' },
+{ id:80, it:'sale', ru:'соль', level:'A1', category:'food' },
+{ id:81, it:'olio', ru:'масло (растительное)', level:'A1', category:'food' },
+{ id:82, it:'burro', ru:'масло (сливочное)', level:'A1', category:'food' },
+{ id:83, it:'colazione', ru:'завтрак', level:'A1', category:'food' },
+{ id:84, it:'pranzo', ru:'обед', level:'A1', category:'food' },
+{ id:85, it:'cena', ru:'ужин', level:'A1', category:'food' },
+{ id:86, it:'ristorante', ru:'ресторан', level:'A1', category:'food' },
+{ id:87, it:'menù', ru:'меню', level:'A1', category:'food' },
+{ id:88, it:'conto', ru:'счёт', level:'A1', category:'food' },
+{ id:89, it:'cameriere', ru:'официант', level:'A1', category:'food' },
+{ id:90, it:'dolce', ru:'сладкое / десерт', level:'A1', category:'food' },
+{ id:91, it:'gelato', ru:'мороженое', level:'A1', category:'food' },
+{ id:92, it:'succo', ru:'сок', level:'A1', category:'food' },
+{ id:93, it:'birra', ru:'пиво', level:'A1', category:'food' },
+{ id:94, it:'tavolo', ru:'стол', level:'A1', category:'food' },
+{ id:95, it:'piatto', ru:'тарелка / блюдо', level:'A1', category:'food' },
+
+// ══════ A1 — colors (id 96-110) ══════
+{ id:96, it:'rosso', ru:'красный', level:'A1', category:'colors' },
+{ id:97, it:'blu', ru:'синий', level:'A1', category:'colors' },
+{ id:98, it:'verde', ru:'зелёный', level:'A1', category:'colors' },
+{ id:99, it:'giallo', ru:'жёлтый', level:'A1', category:'colors' },
+{ id:100, it:'bianco', ru:'белый', level:'A1', category:'colors' },
+{ id:101, it:'nero', ru:'чёрный', level:'A1', category:'colors' },
+{ id:102, it:'grigio', ru:'серый', level:'A1', category:'colors' },
+{ id:103, it:'marrone', ru:'коричневый', level:'A1', category:'colors' },
+{ id:104, it:'rosa', ru:'розовый', level:'A1', category:'colors' },
+{ id:105, it:'viola', ru:'фиолетовый', level:'A1', category:'colors' },
+{ id:106, it:'arancione', ru:'оранжевый', level:'A1', category:'colors' },
+{ id:107, it:'azzurro', ru:'голубой', level:'A1', category:'colors' },
+{ id:108, it:'chiaro', ru:'светлый', level:'A1', category:'colors' },
+{ id:109, it:'scuro', ru:'тёмный', level:'A1', category:'colors' },
+{ id:110, it:'colore', ru:'цвет', level:'A1', category:'colors' },
+
+// ══════ A2 — time (id 111-135) ══════
+{ id:111, it:'ora', ru:'час / сейчас', level:'A2', category:'time' },
+{ id:112, it:'giorno', ru:'день', level:'A2', category:'time' },
+{ id:113, it:'settimana', ru:'неделя', level:'A2', category:'time' },
+{ id:114, it:'mese', ru:'месяц', level:'A2', category:'time' },
+{ id:115, it:'anno', ru:'год', level:'A2', category:'time' },
+{ id:116, it:'mattina', ru:'утро', level:'A2', category:'time' },
+{ id:117, it:'pomeriggio', ru:'день (после полудня)', level:'A2', category:'time' },
+{ id:118, it:'sera', ru:'вечер', level:'A2', category:'time' },
+{ id:119, it:'notte', ru:'ночь', level:'A2', category:'time' },
+{ id:120, it:'oggi', ru:'сегодня', level:'A2', category:'time' },
+{ id:121, it:'domani', ru:'завтра', level:'A2', category:'time' },
+{ id:122, it:'ieri', ru:'вчера', level:'A2', category:'time' },
+{ id:123, it:'adesso', ru:'сейчас', level:'A2', category:'time' },
+{ id:124, it:'presto', ru:'рано / скоро', level:'A2', category:'time' },
+{ id:125, it:'tardi', ru:'поздно', level:'A2', category:'time' },
+{ id:126, it:'lunedì', ru:'понедельник', level:'A2', category:'time' },
+{ id:127, it:'martedì', ru:'вторник', level:'A2', category:'time' },
+{ id:128, it:'mercoledì', ru:'среда', level:'A2', category:'time' },
+{ id:129, it:'giovedì', ru:'четверг', level:'A2', category:'time' },
+{ id:130, it:'venerdì', ru:'пятница', level:'A2', category:'time' },
+{ id:131, it:'sabato', ru:'субботa', level:'A2', category:'time' },
+{ id:132, it:'domenica', ru:'воскресенье', level:'A2', category:'time' },
+{ id:133, it:'orario', ru:'расписание', level:'A2', category:'time' },
+{ id:134, it:'stagione', ru:'сезон', level:'A2', category:'time' },
+{ id:135, it:'inverno', ru:'зима', level:'A2', category:'time' },
+
+// ══════ A2 — travel (id 136-165) ══════
+{ id:136, it:'aeroporto', ru:'аэропорт', level:'A2', category:'travel' },
+{ id:137, it:'treno', ru:'поезд', level:'A2', category:'travel' },
+{ id:138, it:'albergo', ru:'отель', level:'A2', category:'travel' },
+{ id:139, it:'biglietto', ru:'билет', level:'A2', category:'travel' },
+{ id:140, it:'passaporto', ru:'паспорт', level:'A2', category:'travel' },
+{ id:141, it:'valigia', ru:'чемодан', level:'A2', category:'travel' },
+{ id:142, it:'volo', ru:'рейс / полёт', level:'A2', category:'travel' },
+{ id:143, it:'partenza', ru:'отправление', level:'A2', category:'travel' },
+{ id:144, it:'arrivo', ru:'прибытие', level:'A2', category:'travel' },
+{ id:145, it:'autobus', ru:'автобус', level:'A2', category:'travel' },
+{ id:146, it:'macchina', ru:'машина', level:'A2', category:'travel' },
+{ id:147, it:'taxi', ru:'такси', level:'A2', category:'travel' },
+{ id:148, it:'strada', ru:'улица / дорога', level:'A2', category:'travel' },
+{ id:149, it:'mappa', ru:'карта', level:'A2', category:'travel' },
+{ id:150, it:'stazione', ru:'станция / вокзал', level:'A2', category:'travel' },
+{ id:151, it:'porto', ru:'порт', level:'A2', category:'travel' },
+{ id:152, it:'nave', ru:'корабль', level:'A2', category:'travel' },
+{ id:153, it:'turista', ru:'турист', level:'A2', category:'travel' },
+{ id:154, it:'vacanza', ru:'отпуск / каникулы', level:'A2', category:'travel' },
+{ id:155, it:'camera', ru:'комната (номер)', level:'A2', category:'travel' },
+{ id:156, it:'prenotazione', ru:'бронирование', level:'A2', category:'travel' },
+{ id:157, it:'dogana', ru:'таможня', level:'A2', category:'travel' },
+{ id:158, it:'frontiera', ru:'граница', level:'A2', category:'travel' },
+{ id:159, it:'guida', ru:'гид / руководство', level:'A2', category:'travel' },
+{ id:160, it:'itinerario', ru:'маршрут', level:'A2', category:'travel' },
+{ id:161, it:'destra', ru:'право (направление)', level:'A2', category:'travel' },
+{ id:162, it:'sinistra', ru:'лево (направление)', level:'A2', category:'travel' },
+{ id:163, it:'dritto', ru:'прямо', level:'A2', category:'travel' },
+{ id:164, it:'vicino', ru:'близко', level:'A2', category:'travel' },
+{ id:165, it:'lontano', ru:'далеко', level:'A2', category:'travel' },
+
+// ══════ A2 — body (id 166-190) ══════
+{ id:166, it:'testa', ru:'голова', level:'A2', category:'body' },
+{ id:167, it:'mano', ru:'рука (кисть)', level:'A2', category:'body' },
+{ id:168, it:'braccio', ru:'рука (от плеча)', level:'A2', category:'body' },
+{ id:169, it:'piede', ru:'нога (стопа)', level:'A2', category:'body' },
+{ id:170, it:'gamba', ru:'нога (от бедра)', level:'A2', category:'body' },
+{ id:171, it:'occhio', ru:'глаз', level:'A2', category:'body' },
+{ id:172, it:'bocca', ru:'рот', level:'A2', category:'body' },
+{ id:173, it:'naso', ru:'нос', level:'A2', category:'body' },
+{ id:174, it:'orecchio', ru:'ухо', level:'A2', category:'body' },
+{ id:175, it:'capelli', ru:'волосы', level:'A2', category:'body' },
+{ id:176, it:'cuore', ru:'сердце', level:'A2', category:'body' },
+{ id:177, it:'schiena', ru:'спина', level:'A2', category:'body' },
+{ id:178, it:'pancia', ru:'живот', level:'A2', category:'body' },
+{ id:179, it:'dito', ru:'палец', level:'A2', category:'body' },
+{ id:180, it:'dente', ru:'зуб', level:'A2', category:'body' },
+{ id:181, it:'pelle', ru:'кожа', level:'A2', category:'body' },
+{ id:182, it:'corpo', ru:'тело', level:'A2', category:'body' },
+{ id:183, it:'salute', ru:'здоровье', level:'A2', category:'body' },
+{ id:184, it:'malato', ru:'больной', level:'A2', category:'body' },
+{ id:185, it:'dolore', ru:'боль', level:'A2', category:'body' },
+{ id:186, it:'medico', ru:'врач', level:'A2', category:'body' },
+{ id:187, it:'farmacia', ru:'аптека', level:'A2', category:'body' },
+{ id:188, it:'medicina', ru:'лекарство', level:'A2', category:'body' },
+{ id:189, it:'febbre', ru:'температура (жар)', level:'A2', category:'body' },
+{ id:190, it:'ospedale', ru:'больница', level:'A2', category:'body' },
+
+// ══════ A2 — home (id 191-210) ══════
+{ id:191, it:'casa', ru:'дом', level:'A2', category:'home' },
+{ id:192, it:'appartamento', ru:'квартира', level:'A2', category:'home' },
+{ id:193, it:'cucina', ru:'кухня', level:'A2', category:'home' },
+{ id:194, it:'bagno', ru:'ванная / туалет', level:'A2', category:'home' },
+{ id:195, it:'camera da letto', ru:'спальня', level:'A2', category:'home' },
+{ id:196, it:'salotto', ru:'гостиная', level:'A2', category:'home' },
+{ id:197, it:'finestra', ru:'окно', level:'A2', category:'home' },
+{ id:198, it:'porta', ru:'дверь', level:'A2', category:'home' },
+{ id:199, it:'letto', ru:'кровать', level:'A2', category:'home' },
+{ id:200, it:'sedia', ru:'стул', level:'A2', category:'home' },
+{ id:201, it:'armadio', ru:'шкаф', level:'A2', category:'home' },
+{ id:202, it:'frigorifero', ru:'холодильник', level:'A2', category:'home' },
+{ id:203, it:'specchio', ru:'зеркало', level:'A2', category:'home' },
+{ id:204, it:'chiave', ru:'ключ', level:'A2', category:'home' },
+{ id:205, it:'affitto', ru:'аренда', level:'A2', category:'home' },
+{ id:206, it:'pulire', ru:'убирать / чистить', level:'A2', category:'home' },
+{ id:207, it:'vicino di casa', ru:'соседский', level:'A2', category:'home' },
+{ id:208, it:'giardino', ru:'сад', level:'A2', category:'home' },
+{ id:209, it:'piano', ru:'этаж', level:'A2', category:'home' },
+{ id:210, it:'scale', ru:'лестница', level:'A2', category:'home' },
+
+// ══════ B1 — work (id 211-240) ══════
+{ id:211, it:'lavoro', ru:'работа / труд', level:'B1', category:'work' },
+{ id:212, it:'ufficio', ru:'офис', level:'B1', category:'work' },
+{ id:213, it:'collega', ru:'коллега', level:'B1', category:'work' },
+{ id:214, it:'stipendio', ru:'зарплата', level:'B1', category:'work' },
+{ id:215, it:'riunione', ru:'совещание', level:'B1', category:'work' },
+{ id:216, it:'capo', ru:'начальник', level:'B1', category:'work' },
+{ id:217, it:'azienda', ru:'компания / фирма', level:'B1', category:'work' },
+{ id:218, it:'contratto', ru:'контракт / договор', level:'B1', category:'work' },
+{ id:219, it:'curriculum', ru:'резюме', level:'B1', category:'work' },
+{ id:220, it:'colloquio', ru:'собеседование', level:'B1', category:'work' },
+{ id:221, it:'carriera', ru:'карьера', level:'B1', category:'work' },
+{ id:222, it:'esperienza', ru:'опыт', level:'B1', category:'work' },
+{ id:223, it:'scadenza', ru:'дедлайн / срок', level:'B1', category:'work' },
+{ id:224, it:'progetto', ru:'проект', level:'B1', category:'work' },
+{ id:225, it:'obiettivo', ru:'цель', level:'B1', category:'work' },
+{ id:226, it:'responsabile', ru:'ответственный', level:'B1', category:'work' },
+{ id:227, it:'orario di lavoro', ru:'рабочее время', level:'B1', category:'work' },
+{ id:228, it:'ferie', ru:'отпуск (трудовой)', level:'B1', category:'work' },
+{ id:229, it:'licenziare', ru:'увольнять', level:'B1', category:'work' },
+{ id:230, it:'assumere', ru:'нанимать', level:'B1', category:'work' },
+{ id:231, it:'guadagnare', ru:'зарабатывать', level:'B1', category:'work' },
+{ id:232, it:'pendolare', ru:'добираться на работу', level:'B1', category:'work' },
+{ id:233, it:'team', ru:'команда (рабочая)', level:'B1', category:'work' },
+{ id:234, it:'promozione', ru:'продвижение', level:'B1', category:'work' },
+{ id:235, it:'sciopero', ru:'забастовка', level:'B1', category:'work' },
+{ id:236, it:'sindacato', ru:'профсоюз', level:'B1', category:'work' },
+{ id:237, it:'fattura', ru:'счёт-фактура', level:'B1', category:'work' },
+{ id:238, it:'imprenditore', ru:'предприниматель', level:'B1', category:'work' },
+{ id:239, it:'concorrenza', ru:'конкуренция', level:'B1', category:'work' },
+{ id:240, it:'settore', ru:'сектор / отрасль', level:'B1', category:'work' },
+
+// ══════ B1 — nature (id 241-265) ══════
+{ id:241, it:'foresta', ru:'лес', level:'B1', category:'nature' },
+{ id:242, it:'montagna', ru:'гора', level:'B1', category:'nature' },
+{ id:243, it:'mare', ru:'море', level:'B1', category:'nature' },
+{ id:244, it:'fiume', ru:'река', level:'B1', category:'nature' },
+{ id:245, it:'cielo', ru:'небо', level:'B1', category:'nature' },
+{ id:246, it:'sole', ru:'солнце', level:'B1', category:'nature' },
+{ id:247, it:'luna', ru:'луна', level:'B1', category:'nature' },
+{ id:248, it:'stella', ru:'звезда', level:'B1', category:'nature' },
+{ id:249, it:'pioggia', ru:'дождь', level:'B1', category:'nature' },
+{ id:250, it:'neve', ru:'снег', level:'B1', category:'nature' },
+{ id:251, it:'vento', ru:'ветер', level:'B1', category:'nature' },
+{ id:252, it:'temperatura', ru:'температура', level:'B1', category:'nature' },
+{ id:253, it:'albero', ru:'дерево', level:'B1', category:'nature' },
+{ id:254, it:'fiore', ru:'цветок', level:'B1', category:'nature' },
+{ id:255, it:'animale', ru:'животное', level:'B1', category:'nature' },
+{ id:256, it:'lago', ru:'озеро', level:'B1', category:'nature' },
+{ id:257, it:'spiaggia', ru:'пляж', level:'B1', category:'nature' },
+{ id:258, it:'isola', ru:'остров', level:'B1', category:'nature' },
+{ id:259, it:'clima', ru:'климат', level:'B1', category:'nature' },
+{ id:260, it:'ambiente', ru:'окружающая среда', level:'B1', category:'nature' },
+{ id:261, it:'inquinamento', ru:'загрязнение', level:'B1', category:'nature' },
+{ id:262, it:'energia', ru:'энергия', level:'B1', category:'nature' },
+{ id:263, it:'pianeta', ru:'планета', level:'B1', category:'nature' },
+{ id:264, it:'paesaggio', ru:'пейзаж', level:'B1', category:'nature' },
+{ id:265, it:'roccia', ru:'скала / камень', level:'B1', category:'nature' },
+
+// ══════ B1 — emotions (id 266-285) ══════
+{ id:266, it:'felice', ru:'счастливый', level:'B1', category:'emotions' },
+{ id:267, it:'triste', ru:'грустный', level:'B1', category:'emotions' },
+{ id:268, it:'arrabbiato', ru:'сердитый', level:'B1', category:'emotions' },
+{ id:269, it:'stanco', ru:'усталый', level:'B1', category:'emotions' },
+{ id:270, it:'preoccupato', ru:'обеспокоенный', level:'B1', category:'emotions' },
+{ id:271, it:'sorpreso', ru:'удивлённый', level:'B1', category:'emotions' },
+{ id:272, it:'annoiato', ru:'скучающий', level:'B1', category:'emotions' },
+{ id:273, it:'spaventato', ru:'испуганный', level:'B1', category:'emotions' },
+{ id:274, it:'innamorato', ru:'влюблённый', level:'B1', category:'emotions' },
+{ id:275, it:'geloso', ru:'завистливый / ревнивый', level:'B1', category:'emotions' },
+{ id:276, it:'orgoglioso', ru:'гордый', level:'B1', category:'emotions' },
+{ id:277, it:'curioso', ru:'любопытный', level:'B1', category:'emotions' },
+{ id:278, it:'nervoso', ru:'нервный', level:'B1', category:'emotions' },
+{ id:279, it:'rilassato', ru:'расслабленный', level:'B1', category:'emotions' },
+{ id:280, it:'emozione', ru:'эмоция', level:'B1', category:'emotions' },
+{ id:281, it:'sentimento', ru:'чувство', level:'B1', category:'emotions' },
+{ id:282, it:'speranza', ru:'надежда', level:'B1', category:'emotions' },
+{ id:283, it:'paura', ru:'страх', level:'B1', category:'emotions' },
+{ id:284, it:'coraggio', ru:'смелость', level:'B1', category:'emotions' },
+{ id:285, it:'fiducia', ru:'доверие', level:'B1', category:'emotions' },
+
+// ══════ B2 — culture (id 286-315) ══════
+{ id:286, it:'patrimonio', ru:'наследие', level:'B2', category:'culture' },
+{ id:287, it:'capolavoro', ru:'шедевр', level:'B2', category:'culture' },
+{ id:288, it:'tradizione', ru:'традиция', level:'B2', category:'culture' },
+{ id:289, it:'artigianato', ru:'ремесло', level:'B2', category:'culture' },
+{ id:290, it:'melodia', ru:'мелодия', level:'B2', category:'culture' },
+{ id:291, it:'affresco', ru:'фреска', level:'B2', category:'culture' },
+{ id:292, it:'scultura', ru:'скульптура', level:'B2', category:'culture' },
+{ id:293, it:'rinascimento', ru:'возрождение (эпоха)', level:'B2', category:'culture' },
+{ id:294, it:'opera', ru:'опера / произведение', level:'B2', category:'culture' },
+{ id:295, it:'mostra', ru:'выставка', level:'B2', category:'culture' },
+{ id:296, it:'regista', ru:'режиссёр', level:'B2', category:'culture' },
+{ id:297, it:'sceneggiatura', ru:'сценарий', level:'B2', category:'culture' },
+{ id:298, it:'editoria', ru:'издательское дело', level:'B2', category:'culture' },
+{ id:299, it:'usanza', ru:'обычай', level:'B2', category:'culture' },
+{ id:300, it:'folklore', ru:'фольклор', level:'B2', category:'culture' },
+{ id:301, it:'dialetto', ru:'диалект', level:'B2', category:'culture' },
+{ id:302, it:'patrimonio artistico', ru:'художественное наследие', level:'B2', category:'culture' },
+{ id:303, it:'identità', ru:'идентичность', level:'B2', category:'culture' },
+{ id:304, it:'estetica', ru:'эстетика', level:'B2', category:'culture' },
+{ id:305, it:'simbolismo', ru:'символизм', level:'B2', category:'culture' },
+{ id:306, it:'eredità culturale', ru:'культурное наследие', level:'B2', category:'culture' },
+{ id:307, it:'restauro', ru:'реставрация', level:'B2', category:'culture' },
+{ id:308, it:'manoscritto', ru:'рукопись', level:'B2', category:'culture' },
+{ id:309, it:'antichità', ru:'античность', level:'B2', category:'culture' },
+{ id:310, it:'monumento', ru:'памятник', level:'B2', category:'culture' },
+{ id:311, it:'critica', ru:'критика', level:'B2', category:'culture' },
+{ id:312, it:'genio', ru:'гений', level:'B2', category:'culture' },
+{ id:313, it:'ispirazione', ru:'вдохновение', level:'B2', category:'culture' },
+{ id:314, it:'narrativa', ru:'художественная литература', level:'B2', category:'culture' },
+{ id:315, it:'poesia', ru:'поэзия', level:'B2', category:'culture' },
+
+// ══════ B2 — media/society (id 316-340) ══════
+{ id:316, it:'notizia', ru:'новость', level:'B2', category:'media' },
+{ id:317, it:'giornale', ru:'газета', level:'B2', category:'media' },
+{ id:318, it:'rivista', ru:'журнал', level:'B2', category:'media' },
+{ id:319, it:'opinione pubblica', ru:'общественное мнение', level:'B2', category:'media' },
+{ id:320, it:'cronaca', ru:'хроника / репортаж', level:'B2', category:'media' },
+{ id:321, it:'inchiesta', ru:'расследование', level:'B2', category:'media' },
+{ id:322, it:'censura', ru:'цензура', level:'B2', category:'media' },
+{ id:323, it:'pregiudizio', ru:'предрассудок', level:'B2', category:'media' },
+{ id:324, it:'tendenza', ru:'тенденция', level:'B2', category:'media' },
+{ id:325, it:'consumo', ru:'потребление', level:'B2', category:'media' },
+{ id:326, it:'pubblicità', ru:'реклама', level:'B2', category:'media' },
+{ id:327, it:'influenza', ru:'влияние', level:'B2', category:'media' },
+{ id:328, it:'dibattito', ru:'дебаты', level:'B2', category:'media' },
+{ id:329, it:'manifestazione', ru:'демонстрация', level:'B2', category:'media' },
+{ id:330, it:'integrazione', ru:'интеграция', level:'B2', category:'media' },
+{ id:331, it:'diversità', ru:'разнообразие', level:'B2', category:'media' },
+{ id:332, it:'comunità', ru:'сообщество', level:'B2', category:'media' },
+{ id:333, it:'generazione', ru:'поколение', level:'B2', category:'media' },
+{ id:334, it:'benessere', ru:'благополучие', level:'B2', category:'media' },
+{ id:335, it:'disagio', ru:'дискомфорт / трудность', level:'B2', category:'media' },
+{ id:336, it:'isolamento', ru:'изоляция', level:'B2', category:'media' },
+{ id:337, it:'solidarietà', ru:'солидарность', level:'B2', category:'media' },
+{ id:338, it:'volontariato', ru:'волонтёрство', level:'B2', category:'media' },
+{ id:339, it:'discriminazione', ru:'дискриминация', level:'B2', category:'media' },
+{ id:340, it:'consapevolezza', ru:'осознанность', level:'B2', category:'media' },
+
+// ══════ C1 — politics/society (id 341-370) ══════
+{ id:341, it:'sostenibilità', ru:'устойчивость / экологичность', level:'C1', category:'politics' },
+{ id:342, it:'disuguaglianza', ru:'неравенство', level:'C1', category:'politics' },
+{ id:343, it:'globalizzazione', ru:'глобализация', level:'C1', category:'politics' },
+{ id:344, it:'sovranità', ru:'суверенитет', level:'C1', category:'politics' },
+{ id:345, it:'resilienza', ru:'устойчивость / resilience', level:'C1', category:'politics' },
+{ id:346, it:'legislazione', ru:'законодательство', level:'C1', category:'politics' },
+{ id:347, it:'governance', ru:'управление (системное)', level:'C1', category:'politics' },
+{ id:348, it:'parlamento', ru:'парламент', level:'C1', category:'politics' },
+{ id:349, it:'referendum', ru:'референдум', level:'C1', category:'politics' },
+{ id:350, it:'costituzione', ru:'конституция', level:'C1', category:'politics' },
+{ id:351, it:'diritti civili', ru:'гражданские права', level:'C1', category:'politics' },
+{ id:352, it:'corruzione', ru:'коррупция', level:'C1', category:'politics' },
+{ id:353, it:'burocrazia', ru:'бюрократия', level:'C1', category:'politics' },
+{ id:354, it:'riforma', ru:'реформа', level:'C1', category:'politics' },
+{ id:355, it:'opposizione', ru:'оппозиция', level:'C1', category:'politics' },
+{ id:356, it:'coalizione', ru:'коалиция', level:'C1', category:'politics' },
+{ id:357, it:'recessione', ru:'рецессия', level:'C1', category:'politics' },
+{ id:358, it:'inflazione', ru:'инфляция', level:'C1', category:'politics' },
+{ id:359, it:'occupazione', ru:'занятость', level:'C1', category:'politics' },
+{ id:360, it:'welfare', ru:'социальное обеспечение', level:'C1', category:'politics' },
+{ id:361, it:'geopolitica', ru:'геополитика', level:'C1', category:'politics' },
+{ id:362, it:'diplomazia', ru:'дипломатия', level:'C1', category:'politics' },
+{ id:363, it:'transizione ecologica', ru:'экологический переход', level:'C1', category:'politics' },
+{ id:364, it:'cittadinanza', ru:'гражданство', level:'C1', category:'politics' },
+{ id:365, it:'autonomia', ru:'автономия', level:'C1', category:'politics' },
+{ id:366, it:'egemonia', ru:'гегемония', level:'C1', category:'politics' },
+{ id:367, it:'legittimità', ru:'легитимность', level:'C1', category:'politics' },
+{ id:368, it:'tutela', ru:'защита (правовая)', level:'C1', category:'politics' },
+{ id:369, it:'normativa', ru:'нормативные акты', level:'C1', category:'politics' },
+{ id:370, it:'vincolo', ru:'ограничение / обязательство', level:'C1', category:'politics' },
+
+// ══════ C1 — academic/abstract (id 371-400) ══════
+{ id:371, it:'paradigma', ru:'парадигма', level:'C1', category:'academic' },
+{ id:372, it:'ipotesi', ru:'гипотеза', level:'C1', category:'academic' },
+{ id:373, it:'analisi', ru:'анализ', level:'C1', category:'academic' },
+{ id:374, it:'sintesi', ru:'синтез', level:'C1', category:'academic' },
+{ id:375, it:'metodologia', ru:'методология', level:'C1', category:'academic' },
+{ id:376, it:'correlazione', ru:'корреляция', level:'C1', category:'academic' },
+{ id:377, it:'evidenza', ru:'доказательство / очевидность', level:'C1', category:'academic' },
+{ id:378, it:'contraddizione', ru:'противоречие', level:'C1', category:'academic' },
+{ id:379, it:'sfumatura', ru:'нюанс / оттенок смысла', level:'C1', category:'academic' },
+{ id:380, it:'ambiguità', ru:'неоднозначность', level:'C1', category:'academic' },
+{ id:381, it:'implicazione', ru:'подтекст / следствие', level:'C1', category:'academic' },
+{ id:382, it:'premessa', ru:'предпосылка', level:'C1', category:'academic' },
+{ id:383, it:'conseguenza', ru:'последствие', level:'C1', category:'academic' },
+{ id:384, it:'argomentazione', ru:'аргументация', level:'C1', category:'academic' },
+{ id:385, it:'controversia', ru:'спорный вопрос', level:'C1', category:'academic' },
+{ id:386, it:'pregiudicare', ru:'предвзято влиять / навредить', level:'C1', category:'academic' },
+{ id:387, it:'approfondire', ru:'углублять / детально изучать', level:'C1', category:'academic' },
+{ id:388, it:'rilevante', ru:'релевантный / значимый', level:'C1', category:'academic' },
+{ id:389, it:'sussistere', ru:'существовать / иметь основания', level:'C1', category:'academic' },
+{ id:390, it:'riscontrare', ru:'обнаруживать / находить подтверждение', level:'C1', category:'academic' },
+{ id:391, it:'configurarsi', ru:'формироваться / представлять собой', level:'C1', category:'academic' },
+{ id:392, it:'salvaguardare', ru:'оберегать', level:'C1', category:'academic' },
+{ id:393, it:'auspicabile', ru:'желательный', level:'C1', category:'academic' },
+{ id:394, it:'imprescindibile', ru:'неотъемлемый / обязательный', level:'C1', category:'academic' },
+{ id:395, it:'tuttavia', ru:'тем не менее', level:'C1', category:'academic' },
+{ id:396, it:'nondimeno', ru:'тем не менее (книжн.)', level:'C1', category:'academic' },
+{ id:397, it:'pertanto', ru:'следовательно', level:'C1', category:'academic' },
+{ id:398, it:'in virtù di', ru:'в силу / на основании', level:'C1', category:'academic' },
+{ id:399, it:'a fronte di', ru:'учитывая / в свете', level:'C1', category:'academic' },
+{ id:400, it:'fatto salvo', ru:'за исключением / при условии', level:'C1', category:'academic' },
+];
+const EXERCISES_DB = [
+// ══════════════ A1 — MULTIPLE CHOICE ══════════════
+{ type:'mc', level:'A1', q:'Как переводится «<em>grazie</em>»?', options:['пожалуйста','спасибо','извините','привет'], answer:1, hint:'Самое важное слово на любом языке' },
+{ type:'mc', level:'A1', q:'Что означает «<em>buongiorno</em>»?', options:['добрый вечер','спокойной ночи','доброе утро','до свидания'], answer:2, hint:'Буквально: «хороший день»' },
+{ type:'mc', level:'A1', q:'Как будет «<em>семья</em>» по-итальянски?', options:['lavoro','famiglia','amico','casa'], answer:1, hint:'Семья — самое важное в итальянской культуре' },
+{ type:'mc', level:'A1', q:'«<em>Arrivederci</em>» — это:', options:['привет','спасибо','до свидания','пожалуйста'], answer:2, hint:'Говоришь, когда уходишь' },
+{ type:'mc', level:'A1', q:'Как будет «<em>вода</em>» по-итальянски?', options:['vino','latte','acqua','succo'], answer:2, hint:'Aqua, water, agua — одна семья' },
+{ type:'mc', level:'A1', q:'«<em>Cinque</em>» — это число:', options:['три','четыре','пять','шесть'], answer:2, hint:'Cinque — пять пальцев на руке' },
+{ type:'mc', level:'A1', q:'Что означает «<em>madre</em>»?', options:['отец','сестра','брат','мать'], answer:3, hint:'Матрица, матриархат — та же основа' },
+{ type:'mc', level:'A1', q:'«<em>Rosso</em>» — это цвет:', options:['синий','красный','зелёный','жёлтый'], answer:1, hint:'Rosso — цвет Ferrari' },
+{ type:'mc', level:'A1', q:'Как переводится «<em>per favore</em>»?', options:['спасибо','пожалуйста','извините','до свидания'], answer:1, hint:'Используется при просьбе' },
+{ type:'mc', level:'A1', q:'«<em>Otto</em>» — это число:', options:['шесть','семь','восемь','девять'], answer:2, hint:'Октава, октагон — корень тот же' },
+{ type:'mc', level:'A1', q:'Что означает «<em>sorella</em>»?', options:['брат','сестра','дочь','сын'], answer:1, hint:'Соролог, сорорат — родственное слово' },
+{ type:'mc', level:'A1', q:'«<em>Pane</em>» переводится как:', options:['хлеб','сыр','мясо','рыба'], answer:0, hint:'Слово «панировка» — от того же корня' },
+{ type:'mc', level:'A1', q:'Как будет «<em>чёрный</em>» по-итальянски?', options:['bianco','nero','grigio','rosso'], answer:1, hint:'Nero — как «негро» в других романских языках' },
+{ type:'mc', level:'A1', q:'«<em>Buonanotte</em>» говорят:', options:['утром','днём','вечером перед сном','при встрече'], answer:2, hint:'Notte = ночь' },
+{ type:'mc', level:'A1', q:'Что означает «<em>fratello</em>»?', options:['сестра','брат','отец','дядя'], answer:1, hint:'Fraternal, fraternity — родственные слова' },
+{ type:'mc', level:'A1', q:'Как сказать «<em>двадцать</em>» по-итальянски?', options:['dieci','venti','trenta','quaranta'], answer:1, hint:'Venti — двадцать, не путать с ветром (vento)' },
+{ type:'mc', level:'A1', q:'«<em>Formaggio</em>» — это:', options:['хлеб','сыр','масло','молоко'], answer:1, hint:'Любимый продукт Италии' },
+{ type:'mc', level:'A1', q:'Что значит «<em>scusi</em>»?', options:['спасибо','извините (формально)','привет','пожалуйста'], answer:1, hint:'Формальное извинение, на вы' },
+{ type:'mc', level:'A1', q:'Как будет «<em>яблоко</em>» по-итальянски?', options:['banana','mela','arancia','pera'], answer:1, hint:'Мелодия, меломан — нет, другой корень!' },
+{ type:'mc', level:'A1', q:'«<em>Verde</em>» — это цвет:', options:['синий','зелёный','жёлтый','красный'], answer:1, hint:'Вердикт, веранда — нет, просто запомни цвет' },
+
+// ══════════════ A1 — FILL IN THE BLANK ══════════════
+{ type:'fill', level:'A1', q:'Напиши по-итальянски «<em>спасибо</em>»:', answer:'grazie', hint:'6 букв, начинается на G' },
+{ type:'fill', level:'A1', q:'Как будет «<em>восемь</em>» по-итальянски?', answer:'otto', hint:'4 буквы — otto' },
+{ type:'fill', level:'A1', q:'Напиши слово «<em>вино</em>» по-итальянски:', answer:'vino', hint:'Как и в испанском, почти то же' },
+{ type:'fill', level:'A1', q:'Как сказать «<em>привет</em>» по-итальянски?', answer:'ciao', hint:'Универсальное слово — и привет, и пока' },
+{ type:'fill', level:'A1', q:'Напиши «<em>один</em>» по-итальянски:', answer:'uno', hint:'3 буквы' },
+{ type:'fill', level:'A1', q:'Как переводится «<em>пицца</em>» (то же слово!):', answer:'pizza', hint:'Это слово знают во всём мире' },
+{ type:'fill', level:'A1', q:'Напиши «<em>да</em>» по-итальянски:', answer:'sì', hint:'2 буквы с акцентом' },
+{ type:'fill', level:'A1', q:'Как будет «<em>хлеб</em>» по-итальянски?', answer:'pane', hint:'4 буквы — pane' },
+{ type:'fill', level:'A1', q:'Напиши «<em>десять</em>» по-итальянски:', answer:'dieci', hint:'Похоже на «декада»' },
+{ type:'fill', level:'A1', q:'Как сказать «<em>дом</em>» по-итальянски?', answer:'casa', hint:'4 буквы, начинается на C' },
+
+// ══════════════ A1 — WORD ORDER ══════════════
+{ type:'order', level:'A1', q:'Составь фразу: «<em>Я хочу пиццу, пожалуйста</em>»', words:['Vorrei','una','pizza,','per','favore'], answer:'Vorrei una pizza, per favore', hint:'vorrei = я хотел бы' },
+{ type:'order', level:'A1', q:'«<em>Как тебя зовут?</em>»', words:['Come','ti','chiami?'], answer:'Come ti chiami?', hint:'Come = как, ti = тебя, chiami = зовут' },
+{ type:'order', level:'A1', q:'«<em>Меня зовут Марко</em>»', words:['Mi','chiamo','Marco'], answer:'Mi chiamo Marco', hint:'mi chiamo = меня зовут' },
+{ type:'order', level:'A1', q:'«<em>Я из России</em>»', words:['Sono','dalla','Russia'], answer:'Sono dalla Russia', hint:'sono = я есть, dalla = из' },
+{ type:'order', level:'A1', q:'«<em>Доброе утро всем</em>»', words:['Buongiorno','a','tutti'], answer:'Buongiorno a tutti', hint:'a tutti = всем' },
+
+// ══════════════ A2 — MULTIPLE CHOICE ══════════════
+{ type:'mc', level:'A2', q:'Как по-итальянски «<em>поезд</em>»?', options:['aereo','autobus','treno','nave'], answer:2, hint:'Train, Zug, treno — похожи' },
+{ type:'mc', level:'A2', q:'Что означает «<em>biglietto</em>»?', options:['паспорт','билет','чемодан','рейс'], answer:1, hint:'То, что нужно купить перед поездкой' },
+{ type:'mc', level:'A2', q:'«<em>Ieri</em>» переводится как:', options:['сегодня','завтра','вчера','сейчас'], answer:2, hint:'Используется для прошедших событий' },
+{ type:'mc', level:'A2', q:'Как сказать «<em>понедельник</em>» по-итальянски?', options:['martedì','lunedì','venerdì','domenica'], answer:1, hint:'Lunedì — связано с луной (luna)' },
+{ type:'mc', level:'A2', q:'«<em>Testa</em>» — это часть тела:', options:['рука','голова','нога','глаз'], answer:1, hint:'То, чем мы думаем' },
+{ type:'mc', level:'A2', q:'Что означает «<em>vicino</em>»?', options:['далеко','близко','прямо','направо'], answer:1, hint:'Антоним к lontano' },
+{ type:'mc', level:'A2', q:'Как будет «<em>отель</em>» по-итальянски?', options:['casa','albergo','ufficio','negozio'], answer:1, hint:'Место, где останавливаются туристы' },
+{ type:'mc', level:'A2', q:'«<em>Farmacia</em>» — это:', options:['больница','аптека','клиника','магазин'], answer:1, hint:'Похоже на «фармацевт»' },
+{ type:'mc', level:'A2', q:'Что означает «<em>frigorifero</em>»?', options:['плита','шкаф','холодильник','стол'], answer:2, hint:'Холод по-итальянски — freddo, тот же корень' },
+{ type:'mc', level:'A2', q:'«<em>Domenica</em>» — это день:', options:['субботa','воскресенье','пятница','понедельник'], answer:1, hint:'Связано со словом «господь» (dominus)' },
+{ type:'mc', level:'A2', q:'Как переводится «<em>valigia</em>»?', options:['паспорт','билет','чемодан','карта'], answer:2, hint:'Что берёшь в поездку с одеждой' },
+{ type:'mc', level:'A2', q:'«<em>Stazione</em>» — это:', options:['аэропорт','вокзал/станция','отель','порт'], answer:1, hint:'Station по-английски — почти то же' },
+{ type:'mc', level:'A2', q:'Что означает «<em>occhio</em>»?', options:['рука','ухо','глаз','нос'], answer:2, hint:'Окулист лечит именно это' },
+{ type:'mc', level:'A2', q:'«<em>Affitto</em>» — это:', options:['покупка','продажа','аренда','ремонт'], answer:2, hint:'Платишь каждый месяц владельцу жилья' },
+{ type:'mc', level:'A2', q:'Как сказать «<em>сегодня</em>» по-итальянски?', options:['domani','ieri','oggi','adesso'], answer:2, hint:'4 буквы' },
+
+// ══════════════ A2 — FILL IN THE BLANK ══════════════
+{ type:'fill', level:'A2', q:'Как называется «<em>паспорт</em>» по-итальянски?', answer:'passaporto', hint:'Паспорт → passaporto' },
+{ type:'fill', level:'A2', q:'Напиши «<em>море</em>» по-итальянски:', answer:'mare', hint:'4 буквы — mare' },
+{ type:'fill', level:'A2', q:'Как будет «<em>аэропорт</em>» по-итальянски?', answer:'aeroporto', hint:'Похоже на английское airport' },
+{ type:'fill', level:'A2', q:'Напиши «<em>вторник</em>» по-итальянски:', answer:'martedì', hint:'Связано с богом Марсом' },
+{ type:'fill', level:'A2', q:'Как сказать «<em>завтра</em>» по-итальянски?', answer:'domani', hint:'6 букв, начинается на D' },
+{ type:'fill', level:'A2', q:'Напиши «<em>больница</em>» по-итальянски:', answer:'ospedale', hint:'Похоже на «госпиталь»' },
+{ type:'fill', level:'A2', q:'Как будет «<em>ключ</em>» по-итальянски?', answer:'chiave', hint:'6 букв, начинается на C' },
+{ type:'fill', level:'A2', q:'Напиши «<em>окно</em>» по-итальянски:', answer:'finestra', hint:'8 букв' },
+
+// ══════════════ A2 — WORD ORDER ══════════════
+{ type:'order', level:'A2', q:'«<em>Сколько это стоит?</em>»', words:['Quanto','costa?'], answer:'Quanto costa?', hint:'Quanto = сколько, costa = стоит' },
+{ type:'order', level:'A2', q:'«<em>Я не понимаю</em>»', words:['Non','capisco'], answer:'Non capisco', hint:'Non = не, capisco = понимаю' },
+{ type:'order', level:'A2', q:'«<em>Где туалет?</em>»', words:["Dov'è","il","bagno?"], answer:"Dov'è il bagno?", hint:'Самый нужный вопрос в путешествии!' },
+{ type:'order', level:'A2', q:'«<em>Я хотел бы заказать номер</em>»', words:['Vorrei','prenotare','una','camera'], answer:'Vorrei prenotare una camera', hint:'prenotare = бронировать' },
+{ type:'order', level:'A2', q:'«<em>В какое время уходит поезд?</em>»', words:['A','che','ora','parte','il','treno?'], answer:'A che ora parte il treno?', hint:'parte = отправляется' },
+{ type:'order', level:'A2', q:'«<em>Мне нужна помощь</em>»', words:['Ho','bisogno','di','aiuto'], answer:'Ho bisogno di aiuto', hint:'ho bisogno di = мне нужно' },
+
+// ══════════════ B1 — MULTIPLE CHOICE ══════════════
+{ type:'mc', level:'B1', q:'«<em>Stipendio</em>» означает:', options:['работа','офис','зарплата','коллега'], answer:2, hint:'То, ради чего все работают' },
+{ type:'mc', level:'B1', q:'Что означает «<em>azienda</em>»?', options:['офис','компания','зарплата','контракт'], answer:1, hint:'Юридическое лицо, где работают сотрудники' },
+{ type:'mc', level:'B1', q:'«<em>Colloquio</em>» — это:', options:['отпуск','совещание','собеседование','контракт'], answer:2, hint:'Происходит при поиске работы' },
+{ type:'mc', level:'B1', q:'Как переводится «<em>foresta</em>»?', options:['гора','лес','река','озеро'], answer:1, hint:'Место, полное деревьев' },
+{ type:'mc', level:'B1', q:'«<em>Inquinamento</em>» означает:', options:['чистота','загрязнение','энергия','климат'], answer:1, hint:'Экологическая проблема современности' },
+{ type:'mc', level:'B1', q:'Что значит «<em>felice</em>»?', options:['грустный','счастливый','усталый','сердитый'], answer:1, hint:'Положительная эмоция' },
+{ type:'mc', level:'B1', q:'«<em>Preoccupato</em>» — это чувство:', options:['радость','обеспокоенность','гордость','любопытство'], answer:1, hint:'Когда волнуешься о чём-то' },
+{ type:'mc', level:'B1', q:'Как переводится «<em>guadagnare</em>»?', options:['тратить','зарабатывать','одалживать','инвестировать'], answer:1, hint:'Глагол про деньги от работы' },
+{ type:'mc', level:'B1', q:'«<em>Sciopero</em>» — это:', options:['собрание','забастовка','праздник','контракт'], answer:1, hint:'Когда рабочие не выходят на работу в знак протеста' },
+{ type:'mc', level:'B1', q:'Что значит «<em>fiducia</em>»?', options:['страх','доверие','гордость','зависть'], answer:1, hint:'Без этого нет отношений' },
+{ type:'mc', level:'B1', q:'«<em>Ambiente</em>» переводится как:', options:['окружающая среда','энергия','климат','планета'], answer:0, hint:'То, что мы должны охранять' },
+{ type:'mc', level:'B1', q:'Как будет «<em>опыт</em>» по-итальянски (выбери)?', options:['esperienza','carriera','progetto','scadenza'], answer:0, hint:'То, что накапливается с годами' },
+
+// ══════════════ B1 — FILL IN THE BLANK ══════════════
+{ type:'fill', level:'B1', q:'Напиши «<em>работа / труд</em>» по-итальянски:', answer:'lavoro', hint:'6 букв' },
+{ type:'fill', level:'B1', q:'Как будет «<em>гора</em>» по-итальянски?', answer:'montagna', hint:'8 букв' },
+{ type:'fill', level:'B1', q:'Напиши «<em>здоровье</em> / уверенность»: пример - «<em>надежда</em>»:', answer:'speranza', hint:'8 букв, от sperare — надеяться' },
+{ type:'fill', level:'B1', q:'Как сказать «<em>команда (рабочая)</em>» можно через английское слово, но напиши «<em>проект</em>»:', answer:'progetto', hint:'8 букв' },
+{ type:'fill', level:'B1', q:'Напиши «<em>усталый</em>» по-итальянски:', answer:'stanco', hint:'6 букв' },
+{ type:'fill', level:'B1', q:'Как будет «<em>дождь</em>» по-итальянски?', answer:'pioggia', hint:'7 букв' },
+
+// ══════════════ B1 — WORD ORDER ══════════════
+{ type:'order', level:'B1', q:'«<em>Я работаю в офисе каждый день</em>»', words:['Lavoro','in','ufficio','ogni','giorno'], answer:'Lavoro in ufficio ogni giorno', hint:'ogni giorno = каждый день' },
+{ type:'order', level:'B1', q:'«<em>Думаю, что это хорошая идея</em>»', words:['Penso','che','sia','una','buona','idea'], answer:'Penso che sia una buona idea', hint:'после penso che идёт congiuntivo' },
+{ type:'order', level:'B1', q:'«<em>Мне нужно больше времени</em>»', words:['Ho','bisogno','di','più','tempo'], answer:'Ho bisogno di più tempo', hint:'più = больше' },
+{ type:'order', level:'B1', q:'«<em>Завтра у меня собеседование</em>»', words:['Domani','ho','un','colloquio'], answer:'Domani ho un colloquio', hint:'ho = у меня есть' },
+
+// ══════════════ B2 — MULTIPLE CHOICE ══════════════
+{ type:'mc', level:'B2', q:'Что означает «<em>patrimonio</em>»?', options:['наследие','наказание','награда','соглашение'], answer:0, hint:'Связано с понятием «отчее» (pater)' },
+{ type:'mc', level:'B2', q:'«<em>Capolavoro</em>» — это:', options:['рабочая инструкция','шедевр','инструмент','начало работы'], answer:1, hint:'Буквально: «голова работы»' },
+{ type:'mc', level:'B2', q:'Как переводится «<em>censura</em>»?', options:['цензура','перепись','оценка','критика'], answer:0, hint:'Контроль над публикуемым контентом' },
+{ type:'mc', level:'B2', q:'«<em>Pregiudizio</em>» означает:', options:['суждение','предрассудок','решение','приговор'], answer:1, hint:'Заранее сформированное (часто неверное) мнение' },
+{ type:'mc', level:'B2', q:'Что значит «<em>discriminazione</em>»?', options:['различение','дискриминация','отличие','описание'], answer:1, hint:'Несправедливое отношение к группе людей' },
+{ type:'mc', level:'B2', q:'«<em>Solidarietà</em>» — это:', options:['одиночество','солидность','солидарность','твёрдость'], answer:2, hint:'Поддержка друг друга в обществе' },
+{ type:'mc', level:'B2', q:'Как переводится «<em>restauro</em>»?', options:['ресторан','реставрация','остановка','перезапуск'], answer:1, hint:'Восстановление произведений искусства' },
+{ type:'mc', level:'B2', q:'«<em>Manoscritto</em>» означает:', options:['напечатанный текст','рукопись','подпись','документ'], answer:1, hint:'Буквально: «написанное рукой» (mano + scritto)' },
+{ type:'mc', level:'B2', q:'Что значит «<em>tendenza</em>»?', options:['напряжение','тенденция','предложение','внимание'], answer:1, hint:'Направление развития чего-либо' },
+{ type:'mc', level:'B2', q:'«<em>Volontariato</em>» — это:', options:['добровольчество','воля','желание','согласие'], answer:0, hint:'Бесплатная помощь по собственному желанию' },
+
+// ══════════════ B2 — FILL IN THE BLANK ══════════════
+{ type:'fill', level:'B2', q:'Напиши «<em>традиция</em>» по-итальянски:', answer:'tradizione', hint:'10 букв' },
+{ type:'fill', level:'B2', q:'Как будет «<em>выставка</em>» по-итальянски?', answer:'mostra', hint:'6 букв' },
+{ type:'fill', level:'B2', q:'Напиши «<em>идентичность</em>» по-итальянски:', answer:'identità', hint:'8 букв с акцентом на конце' },
+{ type:'fill', level:'B2', q:'Как сказать «<em>дебаты</em>» по-итальянски?', answer:'dibattito', hint:'9 букв' },
+{ type:'fill', level:'B2', q:'Напиши «<em>интеграция</em>» по-итальянски:', answer:'integrazione', hint:'12 букв' },
+
+// ══════════════ B2 — WORD ORDER ══════════════
+{ type:'order', level:'B2', q:'«<em>Это вопрос, который вызывает много споров</em>»', words:['È','una','questione','molto','controversa'], answer:'È una questione molto controversa', hint:'controversa = спорная' },
+{ type:'order', level:'B2', q:'«<em>Общественное мнение разделилось</em>»', words:["L'opinione",'pubblica','si','è','divisa'], answer:"L'opinione pubblica si è divisa", hint:'si è divisa = разделилась' },
+{ type:'order', level:'B2', q:'«<em>Нужно учитывать разные точки зрения</em>»', words:['Bisogna','considerare','diversi','punti','di','vista'], answer:'Bisogna considerare diversi punti di vista', hint:'punti di vista = точки зрения' },
+
+// ══════════════ C1 — MULTIPLE CHOICE ══════════════
+{ type:'mc', level:'C1', q:'Что означает «<em>sostenibilità</em>»?', options:['устойчивость / экологичность','стабильность экономики','поддержка','сопротивление'], answer:0, hint:'Ключевое слово в дискуссиях об экологии' },
+{ type:'mc', level:'C1', q:'«<em>Disuguaglianza</em>» переводится как:', options:['равенство','неравенство','несправедливость','разногласие'], answer:1, hint:'Социальная и экономическая проблема' },
+{ type:'mc', level:'C1', q:'Как переводится «<em>egemonia</em>»?', options:['гегемония','демократия','автономия','анархия'], answer:0, hint:'Доминирующее влияние одной силы над другими' },
+{ type:'mc', level:'C1', q:'«<em>Paradigma</em>» — это:', options:['парадокс','парадигма (модель мышления)','парад','парадная речь'], answer:1, hint:'Используется в науке и философии' },
+{ type:'mc', level:'C1', q:'Что значит «<em>ambiguità</em>»?', options:['ясность','неоднозначность','амбиция','амплитуда'], answer:1, hint:'Когда смысл можно понять по-разному' },
+{ type:'mc', level:'C1', q:'«<em>Tuttavia</em>» используется как:', options:['следовательно','тем не менее','например','во-первых'], answer:1, hint:'Союз противопоставления, как «however»' },
+{ type:'mc', level:'C1', q:'Как переводится «<em>pertanto</em>»?', options:['тем не менее','следовательно','в частности','наоборот'], answer:1, hint:'Вводит логическое следствие' },
+{ type:'mc', level:'C1', q:'«<em>Imprescindibile</em>» означает:', options:['необязательный','неотъемлемый / обязательный','непостоянный','непонятный'], answer:1, hint:'То, без чего нельзя обойтись' },
+{ type:'mc', level:'C1', q:'Что значит «<em>burocrazia</em>»?', options:['демократия','бюрократия','аристократия','технократия'], answer:1, hint:'Административная система с множеством процедур' },
+{ type:'mc', level:'C1', q:'«<em>Recessione</em>» — экономический термин, означающий:', options:['рост','рецессия (спад)','стабильность','инфляция'], answer:1, hint:'Период экономического спада' },
+{ type:'mc', level:'C1', q:'Как переводится «<em>auspicabile</em>»?', options:['нежелательный','желательный','обязательный','случайный'], answer:1, hint:'То, на что надеются как на хороший исход' },
+{ type:'mc', level:'C1', q:'«<em>Legittimità</em>» означает:', options:['законность / легитимность','легенда','лёгкость','легализация'], answer:0, hint:'Признанное правовое или моральное основание' },
+
+// ══════════════ C1 — FILL IN THE BLANK ══════════════
+{ type:'fill', level:'C1', q:'Напиши «<em>глобализация</em>» по-итальянски:', answer:'globalizzazione', hint:'15 букв' },
+{ type:'fill', level:'C1', q:'Как будет «<em>суверенитет</em>» по-итальянски?', answer:'sovranità', hint:'9 букв с акцентом' },
+{ type:'fill', level:'C1', q:'Напиши «<em>анализ</em>» по-итальянски:', answer:'analisi', hint:'7 букв' },
+{ type:'fill', level:'C1', q:'Как сказать «<em>гипотеза</em>» по-итальянски?', answer:'ipotesi', hint:'8 букв, начинается на I (не H!)' },
+{ type:'fill', level:'C1', q:'Напиши «<em>методология</em>» по-итальянски:', answer:'metodologia', hint:'11 букв' },
+{ type:'fill', level:'C1', q:'Как будет «<em>коррупция</em>» по-итальянски?', answer:'corruzione', hint:'10 букв' },
+
+// ══════════════ C1 — WORD ORDER ══════════════
+{ type:'order', level:'C1', q:'«<em>Несмотря на трудности, проект продолжается</em>»', words:['Nonostante','le','difficoltà,','il','progetto','continua'], answer:'Nonostante le difficoltà, il progetto continua', hint:'Nonostante = несмотря на' },
+{ type:'order', level:'C1', q:'«<em>Эта реформа неизбежно вызовет споры</em>»', words:['Questa','riforma','susciterà','inevitabilmente','polemiche'], answer:'Questa riforma susciterà inevitabilmente polemiche', hint:'susciterà = вызовет (futuro)' },
+{ type:'order', level:'C1', q:'«<em>Если бы у нас было больше времени, мы бы добились большего</em>»', words:['Se','avessimo','avuto','più','tempo,','avremmo','ottenuto','di','più'], answer:'Se avessimo avuto più tempo, avremmo ottenuto di più', hint:'Условное предложение III типа (congiuntivo trapassato + condizionale passato)' },
+{ type:'order', level:'C1', q:'«<em>Учитывая обстоятельства, решение представляется оправданным</em>»', words:['Date','le','circostanze,','la','decisione','appare','giustificata'], answer:'Date le circostanze, la decisione appare giustificata', hint:'Date le circostanze = учитывая обстоятельства' },
+
+// ══════════════ FLASHCARDS (по всем уровням) ══════════════
+{ type:'flash', level:'A1', it:'arrivederci', ru:'до свидания', note:'Формальное прощание. Неформально: ciao' },
+{ type:'flash', level:'A1', it:'prego', ru:'пожалуйста / не за что', note:'Также означает «Входите!»' },
+{ type:'flash', level:'A1', it:'caffè', ru:'кофе', note:'В Италии пьют стоя у барной стойки' },
+{ type:'flash', level:'A1', it:'famiglia', ru:'семья', note:'Семья — центр итальянской жизни' },
+{ type:'flash', level:'A1', it:'amore', ru:'любовь', note:'Ti amo = я тебя люблю' },
+{ type:'flash', level:'A1', it:'piacere', ru:'приятно познакомиться', note:'Говорят при первой встрече' },
+{ type:'flash', level:'A2', it:'vicino', ru:'близко', note:'Антоним — lontano (далеко)' },
+{ type:'flash', level:'A2', it:'orario', ru:'расписание', note:'Можно сказать orario di lavoro — рабочее время' },
+{ type:'flash', level:'A2', it:'prenotazione', ru:'бронирование', note:'Используется в отелях и ресторанах' },
+{ type:'flash', level:'A2', it:'dogana', ru:'таможня', note:'Пройти через неё нужно в аэропорту' },
+{ type:'flash', level:'B1', it:'scadenza', ru:'дедлайн / срок', note:'Часто используется в офисной жизни' },
+{ type:'flash', level:'B1', it:'fiducia', ru:'доверие', note:'Avere fiducia in qualcuno = доверять кому-то' },
+{ type:'flash', level:'B1', it:'ambiente', ru:'окружающая среда', note:'Также значит «атмосфера» в переносном смысле' },
+{ type:'flash', level:'B2', it:'patrimonio', ru:'наследие', note:'Patrimonio dell\'umanità = наследие человечества (ЮНЕСКО)' },
+{ type:'flash', level:'B2', it:'dibattito', ru:'дебаты', note:'Часто используется в новостях и политике' },
+{ type:'flash', level:'B2', it:'volontariato', ru:'волонтёрство', note:'Fare volontariato = заниматься волонтёрством' },
+{ type:'flash', level:'C1', it:'tuttavia', ru:'тем не менее', note:'Книжный синоним к ma и però' },
+{ type:'flash', level:'C1', it:'imprescindibile', ru:'неотъемлемый / обязательный', note:'Часто в официальных и академических текстах' },
+{ type:'flash', level:'C1', it:'sostenibilità', ru:'устойчивость / экологичность', note:'Ключевой термин в дискуссиях о климате' },
+{ type:'flash', level:'C1', it:'egemonia', ru:'гегемония', note:'Используется в политологии и философии' },
+];
+const GRAMMAR_DATA = {
+  a1: [
+    {
+      title: 'Артикли: определённые (il, la, lo, l\')',
+      meta: 'A1 · Основа',
+      body: 'В итальянском артикль согласуется с родом и числом существительного.',
+      table: {
+        headers: ['', 'Ед. ч. муж.', 'Ед. ч. жен.', 'Мн. ч. муж.', 'Мн. ч. жен.'],
+        rows: [
+          ['Перед согл.', 'il', 'la', 'i', 'le'],
+          ['Перед гласн.', "l'", "l'", 'gli', 'le'],
+          ['Перед s+согл., z', 'lo', 'la', 'gli', 'le'],
+        ]
+      },
+      examples: [
+        { it: 'il libro', ru: 'книга (муж.)' },
+        { it: 'la casa', ru: 'дом (жен.)' },
+        { it: "l'amico", ru: 'друг (перед гласной)' },
+      ]
+    },
+    {
+      title: 'Артикли: неопределённые (un, una, uno)',
+      meta: 'A1 · Основа',
+      body: 'Неопределённый артикль указывает на один неопределённый предмет.',
+      table: {
+        headers: ['', 'Мужской род', 'Женский род'],
+        rows: [
+          ['Перед согл.', 'un', 'una'],
+          ['Перед гласн.', 'un', "un'"],
+          ['Перед s+согл., z', 'uno', 'una'],
+        ]
+      },
+      examples: [
+        { it: 'un caffè', ru: 'один кофе' },
+        { it: "un'amica", ru: 'подруга' },
+        { it: 'uno zaino', ru: 'рюкзак' },
+      ]
+    },
+    {
+      title: 'Существительные: род и число',
+      meta: 'A1 · Основа',
+      body: 'Большинство итальянских существительных оканчиваются на -o (муж.) или -a (жен.). Множественное число: -o → -i, -a → -e.',
+      table: {
+        headers: ['Ед. число', 'Мн. число', 'Перевод'],
+        rows: [
+          ['ragazzo', 'ragazzi', 'мальчик/и'],
+          ['ragazza', 'ragazze', 'девочка/и'],
+          ['amico', 'amici', 'друг/я'],
+          ['notte', 'notti', 'ночь/и (-e → -i)'],
+        ]
+      },
+      examples: []
+    },
+    {
+      title: 'Личные местоимения',
+      meta: 'A1 · Основа',
+      body: 'Часто опускаются, так как окончание глагола показывает лицо.',
+      table: {
+        headers: ['Местоимение', 'Итал.', 'Пример'],
+        rows: [
+          ['я', 'io', 'Io parlo'],
+          ['ты', 'tu', 'Tu parli'],
+          ['он/она', 'lui/lei', 'Lui parla'],
+          ['мы', 'noi', 'Noi parliamo'],
+          ['вы', 'voi', 'Voi parlate'],
+          ['они', 'loro', 'Loro parlano'],
+        ]
+      },
+      examples: []
+    },
+    {
+      title: 'Presente: глагол essere (быть)',
+      meta: 'A1 · Обязателен к изучению',
+      body: 'Essere — один из самых важных глаголов. Используется для описания сущности, состояния, происхождения.',
+      table: {
+        headers: ['Лицо', 'Форма', 'Пример'],
+        rows: [
+          ['io', 'sono', 'Sono italiano'],
+          ['tu', 'sei', 'Sei stanco?'],
+          ['lui/lei', 'è', "Com'è?"],
+          ['noi', 'siamo', 'Siamo amici'],
+          ['voi', 'siete', 'Siete pronti?'],
+          ['loro', 'sono', 'Sono bravi'],
+        ]
+      },
+      examples: [
+        { it: 'Sono russo', ru: 'Я русский' },
+        { it: 'È bello', ru: 'Это красиво' },
+      ]
+    },
+    {
+      title: 'Presente: глагол avere (иметь)',
+      meta: 'A1 · Обязателен',
+      body: 'Avere используется для выражения обладания, возраста, физических ощущений.',
+      table: {
+        headers: ['Лицо', 'Форма'],
+        rows: [
+          ['io', 'ho'],
+          ['tu', 'hai'],
+          ['lui/lei', 'ha'],
+          ['noi', 'abbiamo'],
+          ['voi', 'avete'],
+          ['loro', 'hanno'],
+        ]
+      },
+      examples: [
+        { it: 'Ho fame', ru: 'Я голоден (букв. имею голод)' },
+        { it: 'Ho ventanni', ru: 'Мне двадцать лет' },
+      ]
+    },
+    {
+      title: 'Presente: правильные глаголы -are',
+      meta: 'A1 · Самая большая группа',
+      body: 'Глаголы на -are — самая многочисленная группа. Пример: parlare (говорить).',
+      table: {
+        headers: ['Лицо', '-are → окончание', 'parlare'],
+        rows: [
+          ['io', '-o', 'parlo'],
+          ['tu', '-i', 'parli'],
+          ['lui/lei', '-a', 'parla'],
+          ['noi', '-iamo', 'parliamo'],
+          ['voi', '-ate', 'parlate'],
+          ['loro', '-ano', 'parlano'],
+        ]
+      },
+      examples: [
+        { it: 'Parlo italiano', ru: 'Я говорю по-итальянски' },
+        { it: 'Mangiamo pizza', ru: 'Мы едим пиццу' },
+      ]
+    },
+    {
+      title: 'Presente: глаголы -ere и -ire',
+      meta: 'A1 · Две другие группы',
+      body: 'Помимо -are, есть группы -ere (leggere) и -ire (dormire). Окончания отличаются в io/tu/lui, но совпадают в noi.',
+      table: {
+        headers: ['Лицо', 'leggere', 'dormire'],
+        rows: [
+          ['io', 'leggo', 'dormo'],
+          ['tu', 'leggi', 'dormi'],
+          ['lui/lei', 'legge', 'dorme'],
+          ['noi', 'leggiamo', 'dormiamo'],
+          ['voi', 'leggete', 'dormite'],
+          ['loro', 'leggono', 'dormono'],
+        ]
+      },
+      examples: [
+        { it: 'Leggo un libro', ru: 'Я читаю книгу' },
+        { it: 'Dormo bene', ru: 'Я хорошо сплю' },
+      ]
+    },
+    {
+      title: 'Вопросительные слова',
+      meta: 'A1 · Основа',
+      body: 'Базовые вопросительные слова нужны с первого урока.',
+      table: {
+        headers: ['Слово', 'Значение'],
+        rows: [
+          ['chi?', 'кто?'],
+          ['cosa?', 'что?'],
+          ['dove?', 'где?'],
+          ['quando?', 'когда?'],
+          ['come?', 'как?'],
+          ['perché?', 'почему?'],
+          ['quanto?', 'сколько?'],
+        ]
+      },
+      examples: [
+        { it: 'Dove abiti?', ru: 'Где ты живёшь?' },
+        { it: 'Quanto costa?', ru: 'Сколько это стоит?' },
+      ]
+    },
+  ],
+  a2: [
+    {
+      title: 'Предлоги места',
+      meta: 'A2 · Предлоги',
+      body: 'Основные предлоги места, которые нужно запомнить.',
+      table: {
+        headers: ['Предлог', 'Значение', 'Пример'],
+        rows: [
+          ['in', 'в (страна, комната)', 'in Italia'],
+          ['a', 'в (город)', 'a Roma'],
+          ['da', 'от / у', 'da Marco'],
+          ['su', 'на', 'sul tavolo'],
+          ['sotto', 'под', 'sotto il letto'],
+          ['tra/fra', 'между', 'tra noi'],
+        ]
+      },
+      examples: [
+        { it: 'Sono a Roma', ru: 'Я в Риме' },
+        { it: 'Il libro è sul tavolo', ru: 'Книга на столе' },
+      ]
+    },
+    {
+      title: 'Articoli contratti (слитные артикли)',
+      meta: 'A2 · Грамматика',
+      body: 'Предлог + артикль сливаются в одно слово.',
+      table: {
+        headers: ['Предлог', '+ il', '+ la', '+ lo', "+ l'", '+ i', '+ le', '+ gli'],
+        rows: [
+          ['di', 'del', 'della', 'dello', "dell'", 'dei', 'delle', 'degli'],
+          ['a', 'al', 'alla', 'allo', "all'", 'ai', 'alle', 'agli'],
+          ['in', 'nel', 'nella', 'nello', "nell'", 'nei', 'nelle', 'negli'],
+          ['su', 'sul', 'sulla', 'sullo', "sull'", 'sui', 'sulle', 'sugli'],
+        ]
+      },
+      examples: [
+        { it: "del pane", ru: 'хлеба (немного)' },
+        { it: 'al cinema', ru: 'в кино' },
+      ]
+    },
+    {
+      title: 'Passato Prossimo (прошедшее)',
+      meta: 'A2 · Прошедшее время',
+      body: 'Образуется: avere/essere + participio passato. С глаголами движения и состояния — essere.',
+      table: {
+        headers: ['Тип', 'Формула', 'Пример'],
+        rows: [
+          ['с avere', 'ho/hai/ha + -ato/-uto/-ito', 'Ho mangiato'],
+          ['с essere', 'sono/sei/è + -ato/-uta', 'Sono andato/a'],
+        ]
+      },
+      examples: [
+        { it: 'Ho studiato', ru: 'Я учил(а)' },
+        { it: 'Sono andato a Roma', ru: 'Я ездил в Рим' },
+      ]
+    },
+    {
+      title: 'Глаголы движения с essere',
+      meta: 'A2 · Passato prossimo',
+      body: 'Глаголы движения, изменения состояния и некоторые непереходные глаголы используют essere. Причастие согласуется в роде и числе с подлежащим.',
+      table: {
+        headers: ['Глагол', 'Перевод', 'Participio'],
+        rows: [
+          ['andare', 'идти/ехать', 'andato/a/i/e'],
+          ['venire', 'приходить', 'venuto/a/i/e'],
+          ['partire', 'уезжать', 'partito/a/i/e'],
+          ['arrivare', 'приезжать', 'arrivato/a/i/e'],
+          ['nascere', 'родиться', 'nato/a/i/e'],
+        ]
+      },
+      examples: [
+        { it: 'Maria è partita ieri', ru: 'Мария уехала вчера' },
+        { it: 'Siamo arrivati tardi', ru: 'Мы приехали поздно' },
+      ]
+    },
+    {
+      title: 'Прилагательные: согласование',
+      meta: 'A2 · Грамматика',
+      body: 'Прилагательные согласуются в роде и числе с существительным. Обычно стоят после существительного.',
+      table: {
+        headers: ['Форма', 'Пример'],
+        rows: [
+          ['муж. ед.', 'un libro interessante'],
+          ['жен. ед.', 'una casa bella'],
+          ['муж. мн.', 'libri interessanti'],
+          ['жен. мн.', 'case belle'],
+        ]
+      },
+      examples: [
+        { it: 'Una ragazza simpatica', ru: 'Приятная девушка' },
+        { it: 'Dei film divertenti', ru: 'Весёлые фильмы' },
+      ]
+    },
+    {
+      title: 'Модальные глаголы: dovere, potere, volere',
+      meta: 'A2 · Важная тройка',
+      body: 'Эти три глагола управляют инфинитивом и выражают необходимость, возможность и желание.',
+      table: {
+        headers: ['io', 'dovere (должен)', 'potere (могу)', 'volere (хочу)'],
+        rows: [
+          ['io', 'devo', 'posso', 'voglio'],
+          ['tu', 'devi', 'puoi', 'vuoi'],
+          ['lui/lei', 'deve', 'può', 'vuole'],
+          ['noi', 'dobbiamo', 'possiamo', 'vogliamo'],
+        ]
+      },
+      examples: [
+        { it: 'Devo andare', ru: 'Я должен идти' },
+        { it: 'Posso entrare?', ru: 'Можно войти?' },
+        { it: 'Voglio imparare', ru: 'Я хочу учиться' },
+      ]
+    },
+    {
+      title: 'Imperfetto (прошедшее несовершенное)',
+      meta: 'A2 · Прошедшее время',
+      body: 'Imperfetto описывает повторяющиеся или длительные действия в прошлом, фон событий.',
+      table: {
+        headers: ['Лицо', 'parlare', 'essere'],
+        rows: [
+          ['io', 'parlavo', 'ero'],
+          ['tu', 'parlavi', 'eri'],
+          ['lui/lei', 'parlava', 'era'],
+          ['noi', 'parlavamo', 'eravamo'],
+        ]
+      },
+      examples: [
+        { it: 'Quando ero piccolo...', ru: 'Когда я был маленьким...' },
+        { it: 'Parlavo italiano ogni giorno', ru: 'Я говорил по-итальянски каждый день' },
+      ]
+    },
+  ],
+  b1: [
+    {
+      title: 'Futuro Semplice (будущее)',
+      meta: 'B1 · Будущее время',
+      body: 'Будущее простое образуется от инфинитива. Окончания одинаковые для -are/-ere/-ire.',
+      table: {
+        headers: ['Лицо', 'parlare', 'scrivere'],
+        rows: [
+          ['io', 'parlerò', 'scriverò'],
+          ['tu', 'parlerai', 'scriverai'],
+          ['lui/lei', 'parlerà', 'scriverà'],
+          ['noi', 'parleremo', 'scriveremo'],
+          ['voi', 'parlerete', 'scriverete'],
+          ['loro', 'parleranno', 'scriveranno'],
+        ]
+      },
+      examples: [
+        { it: 'Domani andrò a Milano', ru: 'Завтра я поеду в Милан' },
+        { it: 'Parleremo italiano', ru: 'Мы будем говорить по-итальянски' },
+      ]
+    },
+    {
+      title: 'Pronomi diretti (прямые местоимения)',
+      meta: 'B1 · Местоимения',
+      body: 'Заменяют прямой объект (винительный падеж). Ставятся перед глаголом.',
+      table: {
+        headers: ['Местоимение', 'Значение'],
+        rows: [
+          ['mi', 'меня'],
+          ['ti', 'тебя'],
+          ['lo/la', 'его/её'],
+          ['ci', 'нас'],
+          ['vi', 'вас'],
+          ['li/le', 'их (м/ж)'],
+        ]
+      },
+      examples: [
+        { it: 'Lo vedo', ru: 'Я его вижу' },
+        { it: 'Ti amo', ru: 'Я тебя люблю' },
+      ]
+    },
+    {
+      title: 'Pronomi indiretti (косвенные местоимения)',
+      meta: 'B1 · Местоимения',
+      body: 'Заменяют косвенный объект (дательный падеж — кому/чему).',
+      table: {
+        headers: ['Местоимение', 'Значение'],
+        rows: [
+          ['mi', 'мне'],
+          ['ti', 'тебе'],
+          ['gli/le', 'ему/ей'],
+          ['ci', 'нам'],
+          ['vi', 'вам'],
+          ['gli', 'им'],
+        ]
+      },
+      examples: [
+        { it: 'Gli ho scritto', ru: 'Я ему написал' },
+        { it: 'Mi piace', ru: 'Мне нравится' },
+      ]
+    },
+    {
+      title: 'Condizionale Presente (бы)',
+      meta: 'B1 · Условное наклонение',
+      body: 'Используется для вежливых просьб, советов и гипотез. Основа как у futuro.',
+      table: {
+        headers: ['Лицо', 'parlare', 'essere'],
+        rows: [
+          ['io', 'parlerei', 'sarei'],
+          ['tu', 'parleresti', 'saresti'],
+          ['lui/lei', 'parlerebbe', 'sarebbe'],
+          ['noi', 'parleremmo', 'saremmo'],
+        ]
+      },
+      examples: [
+        { it: 'Vorrei un caffè', ru: 'Я хотел бы кофе' },
+        { it: 'Potrei aiutarti', ru: 'Я мог бы тебе помочь' },
+      ]
+    },
+    {
+      title: 'Comparativi (сравнения)',
+      meta: 'B1 · Сравнительная степень',
+      body: 'Сравнение «больше/меньше/так же как».',
+      table: {
+        headers: ['Конструкция', 'Значение', 'Пример'],
+        rows: [
+          ['più... di', 'больше чем', 'più alto di me'],
+          ['meno... di', 'меньше чем', 'meno caro di quello'],
+          ['così... come', 'так же... как', 'così bravo come lui'],
+          ['migliore/peggiore', 'лучше/хуже', 'è migliore'],
+        ]
+      },
+      examples: [
+        { it: 'Roma è più grande di Firenze', ru: 'Рим больше Флоренции' },
+      ]
+    },
+    {
+      title: 'Pronomi relativi: che, cui, chi',
+      meta: 'B1 · Относительные местоимения',
+      body: 'Che — универсальное относительное местоимение (кто/который/что). Cui используется после предлогов.',
+      table: {
+        headers: ['Местоимение', 'Использование'],
+        rows: [
+          ['che', 'подлежащее/прямой объект — «который»'],
+          ['cui', 'после предлога — «которому/которым»'],
+          ['chi', 'без антецедента — «тот, кто»'],
+        ]
+      },
+      examples: [
+        { it: 'Il libro che leggo', ru: 'Книга, которую я читаю' },
+        { it: 'La persona di cui parlo', ru: 'Человек, о котором я говорю' },
+      ]
+    },
+  ],
+  b2: [
+    {
+      title: 'Congiuntivo Presente — введение',
+      meta: 'B2 · Субъюнктив',
+      body: 'Congiuntivo выражает сомнение, желание, субъективное мнение. Используется в придаточных после che с глаголами мнения, эмоции, желания.',
+      table: {
+        headers: ['Лицо', 'parlare', 'essere'],
+        rows: [
+          ['io', 'parli', 'sia'],
+          ['tu', 'parli', 'sia'],
+          ['lui/lei', 'parli', 'sia'],
+          ['noi', 'parliamo', 'siamo'],
+          ['voi', 'parliate', 'siate'],
+          ['loro', 'parlino', 'siano'],
+        ]
+      },
+      examples: [
+        { it: 'Penso che tu abbia ragione', ru: 'Думаю, что ты прав' },
+        { it: 'Voglio che venga', ru: 'Хочу, чтобы он пришёл' },
+      ]
+    },
+    {
+      title: 'Verbi e espressioni che richiedono il congiuntivo',
+      meta: 'B2 · Когда использовать субъюнктив',
+      body: 'После глаголов мнения, эмоции, желания, сомнения, а также безличных конструкций.',
+      table: {
+        headers: ['Тип', 'Примеры'],
+        rows: [
+          ['мнение', 'pensare che, credere che'],
+          ['эмоция', 'temere che, sperare che'],
+          ['желание', 'volere che, desiderare che'],
+          ['безличные', 'è possibile che, sembra che, bisogna che'],
+        ]
+      },
+      examples: [
+        { it: 'Spero che tu stia bene', ru: 'Надеюсь, что ты в порядке' },
+        { it: 'Bisogna che studi di più', ru: 'Нужно, чтобы ты учился больше' },
+      ]
+    },
+    {
+      title: 'Forma passiva (пассивный залог)',
+      meta: 'B2 · Залог',
+      body: 'Пассив образуется essere + participio passato. Используется, когда важнее действие, а не исполнитель.',
+      table: {
+        headers: ['Активный залог', 'Пассивный залог'],
+        rows: [
+          ['Mario scrive il libro', 'Il libro è scritto da Mario'],
+          ['Hanno costruito la casa', 'La casa è stata costruita'],
+        ]
+      },
+      examples: [
+        { it: 'Il film è stato premiato', ru: 'Фильм был награждён' },
+      ]
+    },
+    {
+      title: 'Si impersonale e si passivante',
+      meta: 'B2 · Безличные конструкции',
+      body: 'Si impersonale используется для общих утверждений («говорят, что...»). Si passivante заменяет пассив с множественным числом.',
+      table: {
+        headers: ['Конструкция', 'Значение', 'Пример'],
+        rows: [
+          ['si dice che', 'говорят, что', 'Si dice che sia vero'],
+          ['si mangia bene', 'едят хорошо (вообще)', 'In Italia si mangia bene'],
+          ['si vendono', 'продаются', 'Qui si vendono libri'],
+        ]
+      },
+      examples: [
+        { it: 'Non si sa mai', ru: 'Никогда не знаешь' },
+      ]
+    },
+    {
+      title: 'Discorso indiretto — основы',
+      meta: 'B2 · Косвенная речь',
+      body: 'При передаче чужих слов время смещается назад относительно времени прямой речи.',
+      table: {
+        headers: ['Прямая речь', '→ Косвенная речь'],
+        rows: [
+          ['presente →', 'imperfetto'],
+          ['passato prossimo →', 'trapassato prossimo'],
+          ['futuro →', 'condizionale passato'],
+        ]
+      },
+      examples: [
+        { it: 'Ha detto: "Sono stanco" → Ha detto che era stanco', ru: 'Он сказал, что устал' },
+      ]
+    },
+    {
+      title: 'Periodo hypotetico — тип II',
+      meta: 'B2 · Условные предложения',
+      body: 'Гипотетическое (нереальное в настоящем) условие: se + congiuntivo imperfetto, condizionale presente.',
+      table: {
+        headers: ['Часть', 'Время'],
+        rows: [
+          ['se...', 'congiuntivo imperfetto'],
+          ['(то)', 'condizionale presente'],
+        ]
+      },
+      examples: [
+        { it: 'Se avessi tempo, viaggerei', ru: 'Если бы у меня было время, я бы путешествовал' },
+        { it: 'Se fossi in te, non andrei', ru: 'Если бы я был на твоём месте, я бы не пошёл' },
+      ]
+    },
+  ],
+  c1: [
+    {
+      title: 'Periodo ipotetico — тип III (нереальное в прошлом)',
+      meta: 'C1 · Условные предложения',
+      body: 'Используется, когда условие в прошлом не выполнилось и результат уже невозможен.',
+      table: {
+        headers: ['Тип', 'Если (se)', 'То (principale)'],
+        rows: [
+          ['Реальное (A1)', 'presente', 'presente/futuro'],
+          ['Возможное (B2)', 'congiuntivo imperfetto', 'condizionale presente'],
+          ['Нереальное (C1)', 'congiuntivo trapassato', 'condizionale passato'],
+        ]
+      },
+      examples: [
+        { it: 'Se avessi studiato, avrei passato', ru: 'Если бы учил, сдал бы' },
+        { it: 'Se non fosse partito, l\'avrebbe incontrata', ru: 'Если бы он не уехал, он бы встретил её' },
+      ]
+    },
+    {
+      title: 'Gerundio и participio',
+      meta: 'C1 · Деепричастие',
+      body: 'Gerundio (gerund) образуется от основы инфинитива: -ando/-endo. Используется для одновременного действия, причины, способа.',
+      table: {
+        headers: ['Инфинитив', 'Gerundio', 'Значение'],
+        rows: [
+          ['parlare', 'parlando', 'говоря'],
+          ['leggere', 'leggendo', 'читая'],
+          ['venire', 'venendo', 'приходя'],
+          ['stare', 'stando', 'находясь'],
+        ]
+      },
+      examples: [
+        { it: 'Stavo leggendo quando...', ru: 'Я читал, когда...' },
+        { it: 'Parlando si capisce', ru: 'Разговаривая, понимаешь' },
+        { it: 'Avendo finito, è uscito', ru: 'Закончив, он вышел (gerundio passato)' },
+      ]
+    },
+    {
+      title: 'Discorso indiretto — продвинутый уровень',
+      meta: 'C1 · Трансформации',
+      body: 'При переводе в косвенную речь время смещается назад (concordanza dei tempi). Также меняются местоимения и указательные слова.',
+      table: {
+        headers: ['Прямая речь', '→ Косвенная речь'],
+        rows: [
+          ['presente →', 'imperfetto'],
+          ['futuro →', 'condizionale passato'],
+          ['passato prossimo →', 'trapassato prossimo'],
+          ['imperativo →', 'congiuntivo imperfetto / di + infinito'],
+        ]
+      },
+      examples: [
+        { it: 'Disse che studiava', ru: 'Сказал, что учится (→ учился)' },
+        { it: 'Disse che sarebbe venuto', ru: 'Сказал, что придёт (→ пришёл бы)' },
+      ]
+    },
+    {
+      title: 'Connettivi testuali avanzati',
+      meta: 'C1 · Связки в академическом тексте',
+      body: 'Продвинутые связки структурируют аргументацию в формальных и академических текстах.',
+      table: {
+        headers: ['Связка', 'Функция'],
+        rows: [
+          ['tuttavia / nondimeno', 'противопоставление'],
+          ['pertanto / di conseguenza', 'следствие'],
+          ['in virtù di', 'причина / основание'],
+          ['a fronte di', 'учитывая / в свете'],
+          ['fatto salvo', 'за исключением'],
+          ['ciò nonostante', 'несмотря на это'],
+        ]
+      },
+      examples: [
+        { it: 'Tuttavia, la situazione è cambiata', ru: 'Тем не менее, ситуация изменилась' },
+        { it: 'Pertanto, si rende necessario intervenire', ru: 'Следовательно, необходимо принять меры' },
+      ]
+    },
+    {
+      title: 'Congiuntivo в придаточных уступки и цели',
+      meta: 'C1 · Продвинутый субъюнктив',
+      body: 'Союзы affinché, sebbene, nonostante, a meno che требуют congiuntivo в придаточном предложении.',
+      table: {
+        headers: ['Союз', 'Значение'],
+        rows: [
+          ['affinché', 'чтобы (цель)'],
+          ['sebbene / nonostante', 'хотя / несмотря на'],
+          ['a meno che (non)', 'если не / разве что'],
+          ['prima che', 'прежде чем'],
+        ]
+      },
+      examples: [
+        { it: 'Sebbene sia difficile, ci proverò', ru: 'Хотя это трудно, я попробую' },
+        { it: 'Verrò a meno che non piova', ru: 'Я приду, если не будет дождя' },
+      ]
+    },
+    {
+      title: 'Registro formale e burocratico',
+      meta: 'C1 · Официальный стиль',
+      body: 'Официально-деловой стиль использует пассивные конструкции, безличные обороты и латинизированную лексику.',
+      table: {
+        headers: ['Разговорный', 'Официальный'],
+        rows: [
+          ['fare', 'effettuare / procedere a'],
+          ['dire', 'dichiarare / comunicare'],
+          ['cominciare', 'avviare / dare inizio a'],
+          ['usare', 'utilizzare / impiegare'],
+        ]
+      },
+      examples: [
+        { it: 'Si comunica che la procedura è stata avviata', ru: 'Сообщается, что процедура была инициирована' },
+      ]
+    },
+    {
+      title: 'Inversione e enfasi (стилистические приёмы)',
+      meta: 'C1 · Стилистика',
+      body: 'Для выделения части предложения используются инверсия и конструкция «è... che».',
+      table: {
+        headers: ['Конструкция', 'Пример'],
+        rows: [
+          ['è... che', 'È lui che ha deciso'],
+          ['fu... a', 'Fu lei a parlare per prima'],
+          ['inversione soggetto-verbo', 'Arrivò improvvisamente la notizia'],
+        ]
+      },
+      examples: [
+        { it: 'È proprio questo che intendevo', ru: 'Именно это я и имел в виду' },
+      ]
+    },
+  ]
+};
+const TOPICS = [
+  { id:'greetings', emoji:'👋', name:'Приветствия',    level:'A1' },
+  { id:'numbers',   emoji:'🔢', name:'Числа',           level:'A1' },
+  { id:'family',    emoji:'👨‍👩‍👧', name:'Семья',           level:'A1' },
+  { id:'food',      emoji:'🍕', name:'Еда и напитки',   level:'A1' },
+  { id:'colors',    emoji:'🎨', name:'Цвета',           level:'A1' },
+  { id:'time',      emoji:'⏰', name:'Время',           level:'A2' },
+  { id:'travel',    emoji:'✈️', name:'Путешествия',     level:'A2' },
+  { id:'body',      emoji:'🧍', name:'Тело и здоровье', level:'A2' },
+  { id:'home',      emoji:'🏠', name:'Дом',             level:'A2' },
+  { id:'work',      emoji:'💼', name:'Работа',          level:'B1' },
+  { id:'nature',    emoji:'🌿', name:'Природа',         level:'B1' },
+  { id:'emotions',  emoji:'😊', name:'Эмоции',          level:'B1' },
+  { id:'culture',   emoji:'🎭', name:'Культура',        level:'B2' },
+  { id:'media',     emoji:'📰', name:'СМИ и общество',  level:'B2' },
+  { id:'politics',  emoji:'🏛️', name:'Политика',        level:'C1' },
+  { id:'academic',  emoji:'🎓', name:'Академический',   level:'C1' },
+];
+
+// count is computed dynamically from VOCABULARY at runtime — see countWordsInTopic()
+
+const LESSON_PATH = [
+  { unit: 'БЛОК A1 · PRINCIPIANTE — ЧАСТЬ 1', level:'A1', items: [
+    { id:'l1', emoji:'🔤', name:'Алфавит и произношение', desc:'Итальянские буквы и звуки', xp:30, type:'mc' },
+    { id:'l2', emoji:'👋', name:'Приветствия', desc:'Ciao, buongiorno, arrivederci', xp:40, type:'mc' },
+    { id:'l3', emoji:'🙏', name:'Вежливые фразы', desc:'Grazie, prego, scusi, per favore', xp:35, type:'fill' },
+    { id:'l4', emoji:'🔢', name:'Числа 0–10', desc:'Zero, uno, due, tre...', xp:40, type:'fill' },
+    { id:'l5', emoji:'🔢', name:'Числа 11–100', desc:'Undici, venti, cento...', xp:40, type:'fill' },
+  ]},
+  { unit: 'БЛОК A1 · PRINCIPIANTE — ЧАСТЬ 2', level:'A1', items: [
+    { id:'l6', emoji:'👨‍👩‍👧', name:'Семья', desc:'Madre, padre, fratello', xp:45, type:'order' },
+    { id:'l7', emoji:'🎨', name:'Цвета', desc:'Rosso, blu, verde...', xp:35, type:'mc' },
+    { id:'l8', emoji:'🍕', name:'Еда: основы', desc:'Pizza, pasta, pane, acqua', xp:50, type:'mc' },
+    { id:'l9', emoji:'☕', name:'В баре и кафе', desc:'Un caffè, per favore', xp:45, type:'order' },
+    { id:'l10', emoji:'❓', name:'Вопросительные слова', desc:'Chi, cosa, dove, quando', xp:40, type:'mc' },
+    { id:'l11', emoji:'👤', name:'Глагол essere', desc:'Sono, sei, è, siamo...', xp:50, type:'fill' },
+    { id:'l12', emoji:'🎒', name:'Глагол avere', desc:'Ho, hai, ha, abbiamo...', xp:50, type:'fill' },
+  ]},
+  { unit: 'БЛОК A2 · ELEMENTARE — ЧАСТЬ 1', level:'A2', items: [
+    { id:'l13', emoji:'⏰', name:'Время и дата', desc:'Ore, giorni, mesi', xp:50, type:'mc' },
+    { id:'l14', emoji:'📅', name:'Дни недели', desc:'Lunedì, martedì...', xp:45, type:'fill' },
+    { id:'l15', emoji:'✈️', name:'В аэропорту', desc:'Biglietto, passaporto, volo', xp:60, type:'fill' },
+    { id:'l16', emoji:'🏨', name:'В отеле', desc:'Prenotazione, camera', xp:55, type:'order' },
+    { id:'l17', emoji:'🏠', name:'Дом и мебель', desc:'Casa, camera, cucina', xp:55, type:'mc' },
+  ]},
+  { unit: 'БЛОК A2 · ELEMENTARE — ЧАСТЬ 2', level:'A2', items: [
+    { id:'l18', emoji:'🛒', name:'В магазине', desc:'Quanto costa? Vorrei...', xp:65, type:'order' },
+    { id:'l19', emoji:'🧍', name:'Тело человека', desc:'Testa, mano, occhio', xp:55, type:'mc' },
+    { id:'l20', emoji:'💊', name:'У врача', desc:'Dolore, medicina, farmacia', xp:60, type:'fill' },
+    { id:'l21', emoji:'🚗', name:'Направления', desc:'Destra, sinistra, dritto', xp:50, type:'order' },
+    { id:'l22', emoji:'📖', name:'Passato prossimo I', desc:'Прошедшее время с avere', xp:70, type:'mc' },
+    { id:'l23', emoji:'🏃', name:'Passato prossimo II', desc:'Прошедшее время с essere', xp:70, type:'mc' },
+    { id:'l24', emoji:'🤝', name:'Модальные глаголы', desc:'Dovere, potere, volere', xp:65, type:'fill' },
+  ]},
+  { unit: 'БЛОК B1 · INTERMEDIO — ЧАСТЬ 1', level:'B1', items: [
+    { id:'l25', emoji:'💼', name:'На работе', desc:'Lavoro, ufficio, collega', xp:70, type:'mc' },
+    { id:'l26', emoji:'📞', name:'Телефон и связь', desc:'Диалоги по телефону', xp:75, type:'fill' },
+    { id:'l27', emoji:'📝', name:'Собеседование', desc:'Curriculum, colloquio', xp:75, type:'order' },
+    { id:'l28', emoji:'🔮', name:'Futuro semplice', desc:'Будущее простое время', xp:80, type:'mc' },
+    { id:'l29', emoji:'🙋', name:'Местоимения mi/ti/lo/la', desc:'Прямые дополнения', xp:70, type:'fill' },
+  ]},
+  { unit: 'БЛОК B1 · INTERMEDIO — ЧАСТЬ 2', level:'B1', items: [
+    { id:'l30', emoji:'🌿', name:'Природа', desc:'Montagna, mare, foresta', xp:70, type:'mc' },
+    { id:'l31', emoji:'🌦️', name:'Погода и климат', desc:'Pioggia, sole, temperatura', xp:65, type:'fill' },
+    { id:'l32', emoji:'😊', name:'Эмоции', desc:'Felice, triste, preoccupato', xp:70, type:'mc' },
+    { id:'l33', emoji:'💬', name:'Condizionale presente', desc:'Вежливые просьбы: vorrei, potrei', xp:80, type:'order' },
+    { id:'l34', emoji:'⚖️', name:'Сравнения', desc:'Più... di, meno... di', xp:75, type:'fill' },
+    { id:'l35', emoji:'🔗', name:'Относительные местоимения', desc:'Che, cui, chi', xp:80, type:'mc' },
+  ]},
+  { unit: 'БЛОК B2 · AVANZATO — ЧАСТЬ 1', level:'B2', items: [
+    { id:'l36', emoji:'🎭', name:'Культура Италии', desc:'Искусство, традиции, история', xp:90, type:'mc' },
+    { id:'l37', emoji:'🖼️', name:'Музеи и искусство', desc:'Affresco, scultura, capolavoro', xp:90, type:'fill' },
+    { id:'l38', emoji:'🤔', name:'Congiuntivo presente', desc:'Субъюнктив: введение', xp:100, type:'mc' },
+    { id:'l39', emoji:'💭', name:'Когда нужен congiuntivo', desc:'Глаголы мнения и эмоции', xp:95, type:'order' },
+  ]},
+  { unit: 'БЛОК B2 · AVANZATO — ЧАСТЬ 2', level:'B2', items: [
+    { id:'l40', emoji:'📰', name:'СМИ и общество', desc:'Notizia, opinione pubblica', xp:90, type:'mc' },
+    { id:'l41', emoji:'🗳️', name:'Дебаты и мнения', desc:'Dibattito, tendenza', xp:90, type:'fill' },
+    { id:'l42', emoji:'🔄', name:'Пассивный залог', desc:'Forma passiva', xp:95, type:'mc' },
+    { id:'l43', emoji:'🗣️', name:'Si impersonale', desc:'Безличные конструкции', xp:90, type:'order' },
+    { id:'l44', emoji:'💬', name:'Косвенная речь I', desc:'Discorso indiretto: основы', xp:100, type:'mc' },
+    { id:'l45', emoji:'🌍', name:'Условные предложения II', desc:'Se + congiuntivo imperfetto', xp:100, type:'order' },
+  ]},
+  { unit: 'БЛОК C1 · AVANZATO+ — ЧАСТЬ 1', level:'C1', items: [
+    { id:'l46', emoji:'🏛️', name:'Политика и право', desc:'Sovranità, diritti, legge', xp:120, type:'order' },
+    { id:'l47', emoji:'📊', name:'Экономика и общество', desc:'Recessione, disuguaglianza', xp:120, type:'mc' },
+    { id:'l48', emoji:'🌐', name:'Глобальные темы', desc:'Globalizzazione, sostenibilità', xp:120, type:'fill' },
+    { id:'l49', emoji:'⏳', name:'Условные III типа', desc:'Periodo ipotetico nel passato', xp:130, type:'order' },
+  ]},
+  { unit: 'БЛОК C1 · AVANZATO+ — ЧАСТЬ 2', level:'C1', items: [
+    { id:'l50', emoji:'🎓', name:'Академический язык', desc:'Научный и официальный стиль', xp:150, type:'fill' },
+    { id:'l51', emoji:'✍️', name:'Gerundio и participio', desc:'Деепричастные конструкции', xp:130, type:'mc' },
+    { id:'l52', emoji:'🔁', name:'Косвенная речь II', desc:'Продвинутая трансформация', xp:130, type:'mc' },
+    { id:'l53', emoji:'🧩', name:'Связки в тексте', desc:'Tuttavia, pertanto, nondimeno', xp:130, type:'fill' },
+    { id:'l54', emoji:'📜', name:'Официальный стиль', desc:'Registro burocratico e formale', xp:140, type:'order' },
+  ]},
+];
+const ACHIEVEMENTS = [
+  { id:'first_lesson', icon:'🎓', name:'Первый урок', desc:'Завершил первый урок' },
+  { id:'streak3',      icon:'🔥', name:'3 дня подряд', desc:'Учись 3 дня без пропусков' },
+  { id:'streak7',      icon:'⚡', name:'Неделя', desc:'7 дней подряд' },
+  { id:'streak30',     icon:'🌋', name:'Месяц без пропусков', desc:'30 дней подряд' },
+  { id:'words50',      icon:'📚', name:'Полиглот', desc:'Изучи 50 слов' },
+  { id:'words100',     icon:'🧠', name:'Словарный запас', desc:'Изучи 100 слов' },
+  { id:'words250',     icon:'📖', name:'Лингвист', desc:'Изучи 250 слов' },
+  { id:'lessons10',    icon:'🏆', name:'Прилежный студент', desc:'Пройди 10 уроков' },
+  { id:'lessons25',    icon:'🥇', name:'Знаток грамматики', desc:'Пройди 25 уроков' },
+  { id:'lessons50',    icon:'👑', name:'Мастер итальянского', desc:'Пройди 50 уроков' },
+  { id:'perfectlesson',icon:'💯', name:'Идеально!', desc:'Урок без ошибок' },
+  { id:'level_a2',     icon:'🌟', name:'A2 достигнут', desc:'Переход на A2' },
+  { id:'level_b1',     icon:'🚀', name:'B1 достигнут', desc:'Переход на B1' },
+  { id:'level_b2',     icon:'💎', name:'B2 достигнут', desc:'Переход на B2' },
+  { id:'level_c1',     icon:'🏅', name:'C1 достигнут', desc:'Высший уровень!' },
+];
+// ══════════════════════════════════════════════
+//  LEVELS
+// ══════════════════════════════════════════════
+const LEVELS = [
+  { id:'A1', name:'Principiante', ru:'Начинающий',    xpNeeded:0,    xpNext:1000  },
+  { id:'A2', name:'Elementare',   ru:'Элементарный',  xpNeeded:1000, xpNext:3000  },
+  { id:'B1', name:'Intermedio',   ru:'Средний',       xpNeeded:3000, xpNext:7000  },
+  { id:'B2', name:'Avanzato',     ru:'Выше среднего', xpNeeded:7000, xpNext:14000 },
+  { id:'C1', name:'Avanzato+',    ru:'Продвинутый',   xpNeeded:14000,xpNext:25000 },
+];
+const LEVEL_ORDER = ['A1','A2','B1','B2','C1'];
+
+// ══════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════
+let state = {
+  xp: 0,
+  streak: 0,
+  lastStudyDate: null,
+  lessonsCompleted: [],
+  wordsLearned: {},   // id → 'new'|'learning'|'mastered'
+  achievements: [],
+  difficulty: 'normal',
+  remindOn: true,
+  soundOn: true,
+  currentLesson: null,
+  exerciseQueue: [],
+  currentExIdx: 0,
+  exStartTime: 0,
+  lives: 3,
+  errors: 0,
+  correctAnswers: 0,
+  selectedAnswer: null,
+  wordSlots: [],
+  lessonXP: 50,
+  lessonWordIds: [],   // word ids touched by the current lesson, for accurate "learning" marking
+  vocabPage: 1,
+};
+
+function saveState() {
+  try { localStorage.setItem('italiano_state_v2', JSON.stringify(state)); } catch(e){}
+}
+function loadState() {
+  try {
+    const s = localStorage.getItem('italiano_state_v2');
+    if (s) state = Object.assign({}, state, JSON.parse(s));
+  } catch(e){}
+}
+function resetProgress() {
+  if (tg?.showConfirm) {
+    tg.showConfirm('Сбросить весь прогресс? Это действие нельзя отменить.', (ok) => {
+      if (ok) doReset();
+    });
+  } else if (confirm('Сбросить весь прогресс? Это действие нельзя отменить.')) {
+    doReset();
+  }
+}
+function doReset() {
+  try { localStorage.removeItem('italiano_state_v2'); } catch(e){}
+  location.reload();
+}
+
+// ══════════════════════════════════════════════
+//  TELEGRAM INIT
+// ══════════════════════════════════════════════
+let tg = window.Telegram?.WebApp;
+let userName = 'друг';
+if (tg) {
+  try {
+    tg.ready();
+    tg.expand();
+    tg.setHeaderColor('#0f0f13');
+    tg.setBackgroundColor('#0f0f13');
+    if (tg.initDataUnsafe?.user?.first_name) {
+      userName = tg.initDataUnsafe.user.first_name;
+    }
+  } catch(e){}
+}
+
+// ══════════════════════════════════════════════
+//  NAVIGATION
+// ══════════════════════════════════════════════
+let lessonsLevelFilter = 'all';
+
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  const nb = document.getElementById('nav-' + name);
+  if (nb) nb.classList.add('active');
+  window.scrollTo(0,0);
+  // The feedback bar (green "Правильно!" / red "Неверно" banner) belongs only to
+  // the exercise screen. If the user leaves that screen any other way than
+  // nextQuestion()/exitExercise() (back gesture, nav tap, etc.), it must not
+  // stay stuck floating over other screens.
+  if (name !== 'exercise') {
+    document.getElementById('feedback-bar').classList.remove('show');
+  }
+  if (name === 'vocab') renderVocab();
+  if (name === 'grammar') renderGrammar(currentGrammarTab);
+  if (name === 'profile') renderProfile();
+  if (name === 'home') renderHome();
+  if (name === 'lessons') renderLessons();
+}
+
+// ══════════════════════════════════════════════
+//  HOME
+// ══════════════════════════════════════════════
+function getCurrentLevel() {
+  let lv = LEVELS[0];
+  for (const l of LEVELS) { if (state.xp >= l.xpNeeded) lv = l; }
+  return lv;
+}
+
+function countWordsInTopic(topicId) {
+  return VOCABULARY.filter(w => w.category === topicId).length;
+}
+function countLearnedInTopic(topicId) {
+  return VOCABULARY.filter(w => w.category === topicId && state.wordsLearned[w.id]).length;
+}
+
+function renderHome() {
+  document.getElementById('user-name').textContent = userName;
+  document.getElementById('streak-count').textContent = state.streak;
+  const lv = getCurrentLevel();
+  document.getElementById('home-level').textContent = lv.id;
+  document.getElementById('home-level-name').textContent = `${lv.name} · ${lv.ru}`;
+  const nextLv = LEVELS[LEVELS.indexOf(lv)+1];
+  const pct = nextLv ? Math.max(0,Math.min(100,Math.round(((state.xp - lv.xpNeeded)/(nextLv.xpNeeded - lv.xpNeeded))*100))) : 100;
+  document.getElementById('home-xp-bar').style.width = pct + '%';
+  document.getElementById('home-xp-current').textContent = state.xp + ' XP';
+  document.getElementById('home-xp-next').textContent = nextLv ? `до ${nextLv.id}: ${nextLv.xpNeeded} XP` : 'Максимум!';
+  document.getElementById('topics-level-label').textContent = `до уровня ${lv.id}`;
+
+  // Daily challenge "done today" indicator (words challenge as the marker)
+  const today = new Date().toDateString();
+  const doneToday = state.lastStudyDate === today;
+  document.getElementById('ch-words').classList.toggle('done', doneToday);
+
+  // Topics grid — show topics up to and including current level
+  const grid = document.getElementById('topics-grid');
+  grid.innerHTML = '';
+  const userLvIdx = LEVEL_ORDER.indexOf(lv.id);
+  TOPICS.forEach(t => {
+    const topicLvIdx = LEVEL_ORDER.indexOf(t.level);
+    const locked = topicLvIdx > userLvIdx;
+    const total = countWordsInTopic(t.id);
+    const learned = countLearnedInTopic(t.id);
+    const pct2 = total > 0 ? Math.min(100, Math.round((learned / total) * 100)) : 0;
+    grid.innerHTML += `
+      <button class="topic-card${locked?' locked':''}" onclick="${locked?'showLockedMsg()':'startTopicLesson(\''+t.id+'\')'}">
+        ${locked ? '<span class="lock-badge">🔒</span>' : ''}
+        <span class="t-emoji">${t.emoji}</span>
+        <div class="t-name">${t.name}</div>
+        <div class="t-count">${learned}/${total} слов · ${t.level}</div>
+        <div class="t-progress"><div class="t-bar" style="width:${pct2}%"></div></div>
+      </button>`;
+  });
+}
+
+function showLockedMsg() {
+  if (tg?.showPopup) {
+    tg.showPopup({ title:'Заблокировано', message:'Сначала пройди предыдущие уровни, чтобы открыть эту тему.', buttons:[{type:'ok'}] });
+  } else { alert('Тема заблокирована. Пройди предыдущие уровни!'); }
+}
+
+// ══════════════════════════════════════════════
+//  LESSONS
+// ══════════════════════════════════════════════
+function renderLessons() {
+  const lv = getCurrentLevel();
+  const total = LESSON_PATH.reduce((a,b)=>a+b.items.length,0);
+  document.getElementById('lessons-subtitle').textContent = `${state.lessonsCompleted.length}/${total} уроков · Уровень ${lv.id}`;
+
+  // Level jump row
+  const jumpRow = document.getElementById('level-jump-row');
+  const allLevelsUsed = ['all', ...LEVEL_ORDER];
+  jumpRow.innerHTML = allLevelsUsed.map(l => `
+    <button class="level-jump-btn${lessonsLevelFilter===l?' active':''}" onclick="setLessonsLevelFilter('${l}')">${l==='all'?'Все':l}</button>
+  `).join('');
+
+  // Build flat ordered list of lessons with computed status
+  const flat = LESSON_PATH.flatMap(b => b.items.map(item => ({...item, unit: b.unit, blockLevel: b.level})));
+  // find index of first not-completed lesson => that one is "current", everything before is "done" or unlocked, everything after is "locked"
+  let firstIncompleteIdx = flat.findIndex(l => !state.lessonsCompleted.includes(l.id));
+  if (firstIncompleteIdx === -1) firstIncompleteIdx = flat.length; // all done
+
+  const container = document.getElementById('lesson-path');
+  container.innerHTML = '';
+  let lastUnit = null;
+  flat.forEach((lesson, idx) => {
+    if (lessonsLevelFilter !== 'all' && lesson.blockLevel !== lessonsLevelFilter) return;
+    if (lesson.unit !== lastUnit) {
+      container.innerHTML += `<div class="unit-badge">${lesson.unit}</div>`;
+      lastUnit = lesson.unit;
+    }
+    const done = state.lessonsCompleted.includes(lesson.id);
+    const isCurrent = idx === firstIncompleteIdx;
+    const locked = idx > firstIncompleteIdx;
+    const statusClass = done ? 'done' : isCurrent ? 'current' : locked ? 'locked' : '';
+    const typeLabel = lesson.type === 'mc' ? 'Выбор' : lesson.type === 'fill' ? 'Ввод' : 'Порядок слов';
+    container.innerHTML += `
+      <button class="lesson-item" style="background:none;border:none;width:100%;font-family:var(--font);" onclick="${locked?'showLockedLessonMsg()':'startLesson(\''+lesson.id+'\')'}">
+        <div class="lesson-dot ${statusClass}">${done ? '✓' : lesson.emoji}</div>
+        <div class="lesson-info">
+          <div class="lesson-name">${lesson.name}</div>
+          <div class="lesson-desc">${lesson.desc}</div>
+          <div class="lesson-chips">
+            <span class="lesson-chip xp">+${lesson.xp} XP</span>
+            <span class="lesson-chip">${typeLabel}</span>
+            ${done ? '<span class="lesson-chip" style="background:rgba(74,222,128,0.1);color:var(--green)">✓ Пройден</span>' : ''}
+          </div>
+        </div>
+      </button>`;
+  });
+  if (container.innerHTML === '') {
+    container.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--text3);">Нет уроков на этом уровне</div>`;
+  }
+}
+
+function setLessonsLevelFilter(l) {
+  lessonsLevelFilter = l;
+  renderLessons();
+}
+
+function showLockedLessonMsg() {
+  if (tg?.showPopup) {
+    tg.showPopup({ title:'Урок заблокирован', message:'Сначала пройди предыдущие уроки по порядку.', buttons:[{type:'ok'}] });
+  } else { alert('Сначала пройди предыдущие уроки по порядку.'); }
+}
+
+// ══════════════════════════════════════════════
+//  EXERCISE ENGINE
+// ══════════════════════════════════════════════
+function pickExercisesByLevelAndType(level, types, count) {
+  let pool = EXERCISES_DB.filter(e => types.includes(e.type) && (!level || e.level === level));
+  if (pool.length < count) {
+    // widen to nearby levels if not enough content
+    pool = EXERCISES_DB.filter(e => types.includes(e.type));
+  }
+  return shuffleArray(pool).slice(0, count);
+}
+function shuffleArray(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function lessonLevelFromBlock(lessonId) {
+  const block = LESSON_PATH.find(b => b.items.some(i => i.id === lessonId));
+  return block ? block.level : 'A1';
+}
+
+function startLesson(id) {
+  const lesson = LESSON_PATH.flatMap(b=>b.items).find(l=>l.id===id);
+  if (!lesson) return;
+  state.currentLesson = id;
+  const lvl = lessonLevelFromBlock(id);
+  const typeGroups = {
+    mc: ['mc','fill'],
+    fill: ['fill','mc'],
+    order: ['order','mc'],
+  };
+  const types = typeGroups[lesson.type] || ['mc'];
+  state.exerciseQueue = pickExercisesByLevelAndType(lvl, types, 8);
+  state.lessonWordIds = [];
+  launchExercise(lesson.xp || 50);
+}
+
+function startTopicLesson(topicId) {
+  state.currentLesson = 'topic_' + topicId;
+  const words = VOCABULARY.filter(w => w.category === topicId);
+  state.lessonWordIds = words.map(w => w.id);
+  // Build a mixed queue: flashcards for some words + mc questions generated from the topic vocabulary
+  const sample = shuffleArray(words).slice(0, 8);
+  const queue = [];
+  sample.forEach(w => {
+    queue.push({ type:'flash', it:w.it, ru:w.ru, _wordId:w.id });
+    const mc = buildMCFromWord(w);
+    if (mc) queue.push(mc);
+  });
+  state.exerciseQueue = shuffleArray(queue).slice(0, 10);
+  launchExercise(60);
+}
+
+function buildMCFromWord(word) {
+  const samelevel = VOCABULARY.filter(w => w.id !== word.id && w.level === word.level);
+  if (samelevel.length < 3) return null;
+  const distractors = shuffleArray(samelevel).slice(0, 3);
+  const options = shuffleArray([word.ru, ...distractors.map(d => d.ru)]);
+  const answerIdx = options.indexOf(word.ru);
+  return {
+    type: 'mc',
+    q: `Как переводится «<em>${word.it}</em>»?`,
+    options,
+    answer: answerIdx,
+    hint: `Уровень: ${word.level}`,
+    _wordId: word.id,
+  };
+}
+
+function startChallenge(type) {
+  state.currentLesson = 'challenge_' + type;
+  const lv = getCurrentLevel();
+  if (type === 'flashcard') {
+    const flashPool = EXERCISES_DB.filter(e => e.type === 'flash');
+    state.exerciseQueue = shuffleArray(flashPool).slice(0, 6);
+    state.lessonWordIds = state.exerciseQueue.map(e => {
+      const w = VOCABULARY.find(v => v.it === e.it);
+      return w ? w.id : null;
+    }).filter(Boolean);
+    launchExercise(40);
+  } else if (type === 'words') {
+    state.exerciseQueue = pickExercisesByLevelAndType(lv.id, ['mc','fill'], 10);
+    state.lessonWordIds = [];
+    launchExercise(50);
+  } else {
+    state.exerciseQueue = pickExercisesByLevelAndType(lv.id, ['mc','order'], 8);
+    state.lessonWordIds = [];
+    launchExercise(50);
+  }
+}
+
+function launchExercise(xp) {
+  state.lessonXP = xp;
+  state.currentExIdx = 0;
+  state.lives = 3;
+  state.errors = 0;
+  state.correctAnswers = 0;
+  state.exStartTime = Date.now();
+  if (!state.exerciseQueue || state.exerciseQueue.length === 0) {
+    state.exerciseQueue = pickExercisesByLevelAndType(null, ['mc'], 5);
+  }
+  showScreen('exercise');
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = state.exerciseQueue[state.currentExIdx];
+  const progress = Math.round((state.currentExIdx / state.exerciseQueue.length) * 100);
+  document.getElementById('ex-progress-fill').style.width = progress + '%';
+  const lives = document.getElementById('ex-lives');
+  lives.querySelectorAll('span').forEach((s,i) => s.classList.toggle('lost', i >= state.lives));
+
+  const body = document.getElementById('ex-body');
+  const ctaArea = document.getElementById('ex-cta-area');
+  ctaArea.innerHTML = '';
+
+  if (q.type === 'mc') renderMC(q, body, ctaArea);
+  else if (q.type === 'fill') renderFill(q, body, ctaArea);
+  else if (q.type === 'order') renderOrder(q, body, ctaArea);
+  else if (q.type === 'flash') renderFlash(q, body, ctaArea);
+}
+
+function renderMC(q, body, ctaArea) {
+  state.selectedAnswer = null;
+  body.innerHTML = `
+    <div class="ex-question-type">Выбери правильный ответ</div>
+    <div class="ex-question">${q.q}</div>
+    <div class="ex-hint">${q.hint || ''}</div>
+    <div class="options-list">
+      ${q.options.map((o,i)=>`
+        <button class="option-btn" onclick="selectMC(${i})" id="opt-${i}">
+          <span class="opt-letter">${'ABCD'[i]}</span>${o}
+        </button>`).join('')}
+    </div>`;
+  ctaArea.innerHTML = `<button class="cta-btn" id="check-btn" disabled onclick="checkMC()">Проверить</button>`;
+}
+
+function selectMC(idx) {
+  if (state.selectedAnswer !== null) return;
+  state.selectedAnswer = idx;
+  document.querySelectorAll('.option-btn').forEach((b,i) => {
+    b.classList.toggle('selected', i === idx);
+  });
+  document.getElementById('check-btn').disabled = false;
+}
+
+function checkMC() {
+  const q = state.exerciseQueue[state.currentExIdx];
+  const correct = state.selectedAnswer === q.answer;
+  document.querySelectorAll('.option-btn').forEach((b,i) => {
+    b.disabled = true;
+    if (i === q.answer) b.classList.add('correct');
+    else if (i === state.selectedAnswer && !correct) b.classList.add('wrong');
+  });
+  document.getElementById('check-btn').disabled = true;
+  if (q._wordId) markWordProgress(q._wordId, correct);
+  showFeedback(correct, q.options[q.answer]);
+}
+
+function renderFill(q, body, ctaArea) {
+  body.innerHTML = `
+    <div class="ex-question-type">Напиши слово</div>
+    <div class="ex-question">${q.q}</div>
+    <div class="ex-hint">${q.hint || ''}</div>
+    <input class="fill-input" id="fill-input" type="text" placeholder="Введи ответ..."
+      autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+      oninput="onFillInput()" onkeydown="if(event.key==='Enter'&&!document.getElementById('check-btn').disabled)checkFill()">`;
+  ctaArea.innerHTML = `<button class="cta-btn" id="check-btn" disabled onclick="checkFill()">Проверить</button>`;
+  setTimeout(()=>document.getElementById('fill-input')?.focus(), 300);
+}
+
+function onFillInput() {
+  const v = document.getElementById('fill-input').value.trim();
+  document.getElementById('check-btn').disabled = v.length === 0;
+}
+
+function normalizeIt(s) {
+  return s.trim().toLowerCase()
+    .replace(/['']/g, "'")
+    .replace(/[àá]/g,'a').replace(/[èé]/g,'e').replace(/[ìí]/g,'i').replace(/[òó]/g,'o').replace(/[ùú]/g,'u');
+}
+
+function checkFill() {
+  const q = state.exerciseQueue[state.currentExIdx];
+  const input = document.getElementById('fill-input');
+  const val = normalizeIt(input.value);
+  const correct = val === normalizeIt(q.answer);
+  input.classList.add(correct ? 'correct' : 'wrong');
+  input.disabled = true;
+  document.getElementById('check-btn').disabled = true;
+  if (q._wordId) markWordProgress(q._wordId, correct);
+  showFeedback(correct, q.answer);
+}
+
+function renderOrder(q, body, ctaArea) {
+  state.wordSlots = [];
+  const shuffled = shuffleArray(q.words);
+  body.innerHTML = `
+    <div class="ex-question-type">Составь предложение</div>
+    <div class="ex-question">${q.q}</div>
+    <div class="ex-hint">${q.hint || ''}</div>
+    <div class="word-slot-area" id="word-slots"></div>
+    <div class="word-bank" id="word-bank">
+      ${shuffled.map((w,i)=>`<button class="word-chip" id="bank-${i}" onclick="addWord(${i})" style="border:1px solid var(--border);">${w}</button>`).join('')}
+    </div>`;
+  // store shuffled words array on state for lookup
+  state._orderBank = shuffled;
+  ctaArea.innerHTML = `<button class="cta-btn" id="check-btn" disabled onclick="checkOrder()">Проверить</button>`;
+}
+
+function addWord(bankIdx) {
+  const bankEl = document.getElementById('bank-'+bankIdx);
+  if (!bankEl || bankEl.classList.contains('hidden-chip')) return;
+  const word = state._orderBank[bankIdx];
+  bankEl.classList.add('hidden-chip');
+  state.wordSlots.push({word, bankIdx});
+  const slots = document.getElementById('word-slots');
+  const chip = document.createElement('button');
+  chip.className = 'word-chip in-slot';
+  chip.style.border = '1px solid var(--accent)';
+  chip.textContent = word;
+  chip.onclick = () => removeWord(bankIdx, chip);
+  slots.appendChild(chip);
+  document.getElementById('check-btn').disabled = state.wordSlots.length < 2;
+}
+
+function removeWord(bankIdx, chipEl) {
+  state.wordSlots = state.wordSlots.filter(s => s.bankIdx !== bankIdx);
+  chipEl.remove();
+  document.getElementById('bank-'+bankIdx).classList.remove('hidden-chip');
+  document.getElementById('check-btn').disabled = state.wordSlots.length < 2;
+}
+
+function checkOrder() {
+  const q = state.exerciseQueue[state.currentExIdx];
+  const given = state.wordSlots.map(s=>s.word).join(' ');
+  const correct = given === q.answer;
+  document.querySelectorAll('#word-slots .word-chip').forEach(c => {
+    c.classList.add(correct ? 'correct' : 'wrong');
+    c.disabled = true;
+  });
+  document.querySelectorAll('#word-bank .word-chip').forEach(c => c.disabled = true);
+  document.getElementById('check-btn').disabled = true;
+  showFeedback(correct, q.answer);
+}
+
+function renderFlash(q, body, ctaArea) {
+  body.innerHTML = `
+    <div class="ex-question-type">Карточка — нажми чтобы перевернуть</div>
+    <button class="flashcard" id="flashcard" onclick="flipCard()" style="border:0.5px solid var(--border);">
+      <div class="card-word">${q.it}</div>
+      <div class="card-translation">${q.ru}</div>
+      ${q.note ? `<div class="card-note">${q.note}</div>` : ''}
+      <div class="card-hint">Нажми, чтобы увидеть перевод</div>
+    </button>`;
+  ctaArea.innerHTML = `
+    <div style="opacity:0.3;transition:opacity 0.3s;pointer-events:none;" id="fc-actions">
+      <div class="flashcard-actions">
+        <button class="fc-btn hard" onclick="rateCard('hard')">😅 Сложно</button>
+        <button class="fc-btn ok" onclick="rateCard('ok')">🤔 Помню</button>
+        <button class="fc-btn easy" onclick="rateCard('easy')">😊 Легко!</button>
+      </div>
+    </div>`;
+}
+
+function flipCard() {
+  document.getElementById('flashcard').classList.add('flipped');
+  const actions = document.getElementById('fc-actions');
+  actions.style.opacity = '1';
+  actions.style.pointerEvents = 'auto';
+}
+
+function rateCard(rating) {
+  const q = state.exerciseQueue[state.currentExIdx];
+  const word = q._wordId ? VOCABULARY.find(w => w.id === q._wordId) : VOCABULARY.find(w => w.it === q.it);
+  if (word) {
+    const newStatus = rating === 'easy' ? 'mastered' : rating === 'ok' ? 'learning' : 'new';
+    state.wordsLearned[word.id] = newStatus;
+    saveState();
+  }
+  const correct = rating !== 'hard';
+  if (correct) state.correctAnswers++; else state.errors++;
+  showFeedback(correct, `${q.it} = ${q.ru}`, true);
+}
+
+function markWordProgress(wordId, correct) {
+  const current = state.wordsLearned[wordId];
+  if (correct) {
+    state.wordsLearned[wordId] = current === 'mastered' ? 'mastered' : current === 'learning' ? 'mastered' : 'learning';
+  } else if (!current) {
+    state.wordsLearned[wordId] = 'new';
+  }
+  saveState();
+}
+
+function showFeedback(correct, correctText, livesAlreadyHandled) {
+  if (!livesAlreadyHandled) {
+    if (correct) {
+      state.correctAnswers++;
+    } else {
+      state.lives = Math.max(0, state.lives - 1);
+      state.errors++;
+    }
+  }
+  const bar = document.getElementById('feedback-bar');
+  bar.className = 'feedback-bar show ' + (correct ? 'correct-fb' : 'wrong-fb');
+  document.getElementById('fb-icon').textContent = correct ? '✅' : '❌';
+  document.getElementById('fb-title').textContent = correct ? (state.correctAnswers > 3 ? '🔥 Отлично!' : 'Правильно!') : 'Неверно';
+  document.getElementById('fb-sub').textContent = correct ? '' : `Правильный ответ: ${correctText}`;
+}
+
+function nextQuestion() {
+  document.getElementById('feedback-bar').classList.remove('show');
+  state.currentExIdx++;
+  if (state.currentExIdx >= state.exerciseQueue.length || state.lives === 0) {
+    finishExercise();
+  } else {
+    renderQuestion();
+  }
+}
+
+function finishExercise() {
+  const elapsed = Math.round((Date.now() - state.exStartTime) / 1000);
+  const totalQ = state.exerciseQueue.length;
+  const accuracy = totalQ > 0 ? Math.round((state.correctAnswers / totalQ) * 100) : 0;
+  const perfect = state.errors === 0;
+  const earnedXP = Math.max(5, Math.round(state.lessonXP * (accuracy / 100) * (perfect ? 1.5 : 1)));
+
+  const levelBefore = getCurrentLevel();
+  state.xp += earnedXP;
+
+  if (state.currentLesson && !state.lessonsCompleted.includes(state.currentLesson)) {
+    state.lessonsCompleted.push(state.currentLesson);
+  }
+
+  // Update streak
+  const today = new Date().toDateString();
+  if (state.lastStudyDate !== today) {
+    const yesterday = new Date(Date.now() - 86400000).toDateString();
+    state.streak = state.lastStudyDate === yesterday ? state.streak + 1 : 1;
+    state.lastStudyDate = today;
+  }
+
+  // Mark only words that were actually part of THIS lesson/queue as "learning" if untouched
+  state.lessonWordIds.forEach(id => {
+    if (!state.wordsLearned[id]) state.wordsLearned[id] = 'learning';
+  });
+
+  const levelAfter = getCurrentLevel();
+  const leveledUp = levelAfter.id !== levelBefore.id;
+
+  checkAchievements(totalQ);
+  saveState();
+
+  document.getElementById('feedback-bar').classList.remove('show');
+  const emoji = accuracy >= 90 ? '🎉' : accuracy >= 60 ? '👍' : '💪';
+  document.getElementById('result-emoji').textContent = emoji;
+  document.getElementById('result-title').textContent = accuracy >= 90 ? 'Великолепно!' : accuracy >= 60 ? 'Хорошо!' : 'Продолжай!';
+  let subText = perfect ? 'Идеальный результат!' : `${state.errors} ошибок — в следующий раз лучше!`;
+  if (leveledUp) subText = `🎊 Новый уровень: ${levelAfter.id}! ` + subText;
+  document.getElementById('result-sub').textContent = subText;
+  document.getElementById('res-accuracy').textContent = accuracy + '%';
+  const m = Math.floor(elapsed/60), s = elapsed%60;
+  document.getElementById('res-time').textContent = m + ':' + String(s).padStart(2,'0');
+  document.getElementById('res-streak').textContent = state.streak;
+  document.getElementById('res-xp').textContent = earnedXP;
+  showScreen('result');
+}
+
+function exitExercise() {
+  document.getElementById('feedback-bar').classList.remove('show');
+  showScreen('lessons');
+}
+
+function continueLesson() {
+  const lv = getCurrentLevel();
+  state.exerciseQueue = pickExercisesByLevelAndType(lv.id, ['mc','fill','order'], 8);
+  state.lessonWordIds = [];
+  state.currentLesson = null;
+  launchExercise(state.lessonXP);
+}
+
+// ══════════════════════════════════════════════
+//  VOCABULARY
+// ══════════════════════════════════════════════
+let vocabFilter = 'all';
+let vocabSearch = '';
+const VOCAB_PAGE_SIZE = 40;
+
+function renderVocab() {
+  const learned = Object.keys(state.wordsLearned).length;
+  document.getElementById('vocab-count-label').textContent = `${learned} слов изучено из ${VOCABULARY.length}`;
+
+  let words = VOCABULARY.filter(w => {
+    const matchLevel = vocabFilter === 'all' ? true :
+      vocabFilter === 'new' ? !state.wordsLearned[w.id] :
+      vocabFilter === 'mastered' ? state.wordsLearned[w.id] === 'mastered' :
+      w.level === vocabFilter;
+    const s = vocabSearch.toLowerCase();
+    const matchSearch = s === '' || w.it.toLowerCase().includes(s) || w.ru.toLowerCase().includes(s);
+    return matchLevel && matchSearch;
+  });
+
+  const list = document.getElementById('vocab-list');
+  if (words.length === 0) {
+    list.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--text3);">Ничего не найдено</div>`;
+    return;
+  }
+  const visibleCount = Math.min(words.length, state.vocabPage * VOCAB_PAGE_SIZE);
+  const visible = words.slice(0, visibleCount);
+  list.innerHTML = visible.map(w => {
+    const status = state.wordsLearned[w.id] || 'new';
+    return `
+      <button class="vocab-card" onclick="startWordPractice(${w.id})">
+        <div class="vc-level ${w.level.toLowerCase()}">${w.level}</div>
+        <div>
+          <div class="vc-word">${w.it}</div>
+          <div class="vc-trans">${w.ru}</div>
+        </div>
+        <div class="vc-right">
+          <div class="vc-status ${status}" title="${status}"></div>
+        </div>
+      </button>`;
+  }).join('');
+  if (visibleCount < words.length) {
+    list.innerHTML += `<button class="vocab-load-more" onclick="loadMoreVocab()">Показать ещё (${words.length - visibleCount})</button>`;
+  }
+}
+
+function loadMoreVocab() {
+  state.vocabPage++;
+  renderVocab();
+}
+
+function setVocabFilter(f, btn) {
+  vocabFilter = f;
+  state.vocabPage = 1;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderVocab();
+}
+
+function filterVocab(q) {
+  vocabSearch = q;
+  state.vocabPage = 1;
+  renderVocab();
+}
+
+function startWordPractice(wordId) {
+  const word = VOCABULARY.find(w => w.id === wordId);
+  if (!word) return;
+  const flashEx = { type:'flash', it: word.it, ru: word.ru, _wordId: word.id };
+  const mcEx = buildMCFromWord(word);
+  state.currentLesson = null;
+  state.lessonWordIds = [word.id];
+  state.exerciseQueue = mcEx ? [flashEx, mcEx] : [flashEx, flashEx];
+  launchExercise(20);
+}
+
+// ══════════════════════════════════════════════
+//  GRAMMAR
+// ══════════════════════════════════════════════
+let currentGrammarTab = 'a1';
+
+function renderGrammar(tab) {
+  currentGrammarTab = tab;
+  const rules = GRAMMAR_DATA[tab] || [];
+  const content = document.getElementById('grammar-content');
+  content.innerHTML = rules.map((r, ri) => `
+    <div class="grammar-rule">
+      <button class="grammar-rule-header" onclick="toggleRule(${ri})">
+        <div>
+          <div class="gr-title">${r.title}</div>
+          <div class="gr-meta">${r.meta}</div>
+        </div>
+        <span id="arrow-${ri}" style="color:var(--text3);transition:transform 0.2s;flex-shrink:0;margin-left:8px;">▼</span>
+      </button>
+      <div class="grammar-rule-body" id="rule-body-${ri}">
+        ${r.body ? `<p>${r.body}</p>` : ''}
+        ${r.table ? `<div class="grammar-table-wrap">${renderGrammarTable(r.table)}</div>` : ''}
+        ${r.examples.map(e=>`
+          <div class="example-phrase">
+            <div class="it-ex">${e.it}</div>
+            <div class="ru-ex">${e.ru}</div>
+          </div>`).join('')}
+      </div>
+    </div>`).join('');
+  if (rules.length > 0) toggleRule(0);
+}
+
+function renderGrammarTable(t) {
+  return `<table class="grammar-table">
+    <thead><tr>${t.headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead>
+    <tbody>${t.rows.map(r=>`<tr>${r.map((c,i)=>`<td class="${i>0?'it':''}">${c}</td>`).join('')}</tr>`).join('')}</tbody>
+  </table>`;
+}
+
+function toggleRule(idx) {
+  const body = document.getElementById('rule-body-'+idx);
+  const arrow = document.getElementById('arrow-'+idx);
+  if (!body) return;
+  const open = body.classList.toggle('open');
+  if (arrow) arrow.style.transform = open ? 'rotate(180deg)' : '';
+}
+
+function setGrammarTab(tab, btn) {
+  document.querySelectorAll('.g-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderGrammar(tab);
+}
+
+// ══════════════════════════════════════════════
+//  PROFILE
+// ══════════════════════════════════════════════
+function renderProfile() {
+  const lv = getCurrentLevel();
+  document.getElementById('profile-name').textContent = userName;
+  document.getElementById('profile-level-badge').textContent = `${lv.id} · ${lv.name}`;
+  document.getElementById('stat-xp').textContent = state.xp.toLocaleString();
+  document.getElementById('stat-streak').textContent = state.streak;
+  document.getElementById('stat-words').textContent = Object.keys(state.wordsLearned).length;
+  document.getElementById('stat-lessons').textContent = state.lessonsCompleted.length;
+  document.getElementById('ach-count').textContent = `${state.achievements.length}/${ACHIEVEMENTS.length}`;
+
+  document.getElementById('toggle-remind').classList.toggle('on', state.remindOn);
+  document.getElementById('toggle-sound').classList.toggle('on', state.soundOn);
+  const labels = { easy:'Лёгкая', normal:'Стандартная', hard:'Сложная' };
+  document.getElementById('diff-label').textContent = labels[state.difficulty] || 'Стандартная';
+
+  const achList = document.getElementById('achievement-list');
+  achList.innerHTML = ACHIEVEMENTS.map(a => {
+    const unlocked = state.achievements.includes(a.id);
+    return `<div class="achievement ${unlocked?'unlocked':'locked'}">
+      <div class="ach-icon">${a.icon}</div>
+      <div>
+        <div class="ach-name">${a.name}</div>
+        <div class="ach-desc">${a.desc}</div>
+      </div>
+      ${unlocked ? '<span style="margin-left:auto;color:var(--green);font-size:18px;">✓</span>' : ''}
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════
+//  ACHIEVEMENTS
+// ══════════════════════════════════════════════
+function checkAchievements(lastQueueLen) {
+  const wordsCount = Object.keys(state.wordsLearned).length;
+  const conds = {
+    first_lesson: state.lessonsCompleted.length >= 1,
+    streak3: state.streak >= 3,
+    streak7: state.streak >= 7,
+    streak30: state.streak >= 30,
+    words50: wordsCount >= 50,
+    words100: wordsCount >= 100,
+    words250: wordsCount >= 250,
+    lessons10: state.lessonsCompleted.length >= 10,
+    lessons25: state.lessonsCompleted.length >= 25,
+    lessons50: state.lessonsCompleted.length >= 50,
+    perfectlesson: state.errors === 0 && lastQueueLen >= 5,
+    level_a2: state.xp >= 1000,
+    level_b1: state.xp >= 3000,
+    level_b2: state.xp >= 7000,
+    level_c1: state.xp >= 14000,
+  };
+  Object.entries(conds).forEach(([id, met]) => {
+    if (met && !state.achievements.includes(id)) {
+      state.achievements.push(id);
+      const ach = ACHIEVEMENTS.find(a=>a.id===id);
+      if (ach && tg?.showPopup) {
+        try { tg.showPopup({ title:'🏆 Достижение!', message:`${ach.icon} ${ach.name}: ${ach.desc}`, buttons:[{type:'ok'}] }); } catch(e){}
+      }
+    }
+  });
+}
+
+// ══════════════════════════════════════════════
+//  SETTINGS
+// ══════════════════════════════════════════════
+function toggleSetting(el) {
+  const isOn = el.classList.toggle('on');
+  if (el.id === 'toggle-remind') state.remindOn = isOn;
+  if (el.id === 'toggle-sound') state.soundOn = isOn;
+  saveState();
+}
+
+const DIFFICULTIES = ['easy','normal','hard'];
+function cycleDifficulty() {
+  let idx = DIFFICULTIES.indexOf(state.difficulty);
+  idx = (idx + 1) % DIFFICULTIES.length;
+  state.difficulty = DIFFICULTIES[idx];
+  const labels = { easy:'Лёгкая', normal:'Стандартная', hard:'Сложная' };
+  document.getElementById('diff-label').textContent = labels[state.difficulty];
+  saveState();
+}
+
+// ══════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════
+loadState();
+renderHome();
+renderLessons();
+renderGrammar('a1');
+</script>
+</body>
+</html>
