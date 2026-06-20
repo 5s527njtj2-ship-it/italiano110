@@ -548,7 +548,7 @@
 <div id="screen-lessons" class="screen">
   <div class="lessons-header">
     <div class="lessons-title">Уроки</div>
-    <div style="font-size:13px;color:var(--text3);margin-top:2px;" id="lessons-subtitle">Путь к C1</div>
+    <div style="font-size:13px;color:var(--text3);margin-top:2px;" id="lessons-subtitle">Путь к C2</div>
   </div>
   <div class="level-jump-row" id="level-jump-row"></div>
   <div class="path-container">
@@ -601,6 +601,7 @@
     <button class="filter-btn" onclick="setVocabFilter('B1', this)">B1</button>
     <button class="filter-btn" onclick="setVocabFilter('B2', this)">B2</button>
     <button class="filter-btn" onclick="setVocabFilter('C1', this)">C1</button>
+    <button class="filter-btn" onclick="setVocabFilter('C2', this)">C2</button>
     <button class="filter-btn" onclick="setVocabFilter('new', this)">Новые</button>
     <button class="filter-btn" onclick="setVocabFilter('mastered', this)">Выучены</button>
   </div>
@@ -611,7 +612,7 @@
 <div id="screen-grammar" class="screen">
   <div style="padding:20px 0 12px;">
     <div style="font-size:22px;font-weight:700;letter-spacing:-0.5px;">Грамматика</div>
-    <div style="font-size:13px;color:var(--text3);margin-top:2px;">36 правил от A1 до C1</div>
+    <div style="font-size:13px;color:var(--text3);margin-top:2px;">48 правил от A1 до C1</div>
   </div>
   <div class="grammar-tabs" id="grammar-tabs">
     <button class="g-tab active" onclick="setGrammarTab('a1',this)">A1</button>
@@ -619,6 +620,7 @@
     <button class="g-tab" onclick="setGrammarTab('b1',this)">B1</button>
     <button class="g-tab" onclick="setGrammarTab('b2',this)">B2</button>
     <button class="g-tab" onclick="setGrammarTab('c1',this)">C1</button>
+    <button class="g-tab" onclick="setGrammarTab('c2',this)">C2</button>
   </div>
   <div id="grammar-content"></div>
 </div>
@@ -7594,6 +7596,19 @@ const LESSON_PATH = [
     { id:'l53', emoji:'🧩', name:'Связки в тексте', desc:'Tuttavia, pertanto, nondimeno', xp:130, type:'fill' },
     { id:'l54', emoji:'📜', name:'Официальный стиль', desc:'Registro burocratico e formale', xp:140, type:'order' },
   ]},
+   { unit: 'БЛОК C2 · MAESTRIA — ЧАСТЬ 1', level:'C2', items: [
+    { id:'l55', emoji:'✒️', name:'Стилистическое мастерство', desc:'Sprezzatura, registro, finezza', xp:160, type:'mc' },
+    { id:'l56', emoji:'📿', name:'Архаичный и литературный язык', desc:'Codesto, ivi, forme desuete', xp:160, type:'fill' },
+    { id:'l57', emoji:'⚗️', name:'Профессиональный жаргон', desc:'Юридическая и медицинская терминология', xp:170, type:'fill' },
+    { id:'l58', emoji:'🗨️', name:'Пословицы и латинские выражения', desc:'Proverbi, locuzioni latine', xp:150, type:'order' },
+  ]},
+  { unit: 'БЛОК C2 · MAESTRIA — ЧАСТЬ 2', level:'C2', items: [
+    { id:'l59', emoji:'🌫️', name:'Тонкие эмоциональные оттенки', desc:'Spaesamento, angoscia, sgomento', xp:160, type:'mc' },
+    { id:'l60', emoji:'♾️', name:'Метафизика и философия', desc:'Noumeno, esistenzialismo, ontologia', xp:180, type:'mc' },
+    { id:'l61', emoji:'🎭', name:'Риторические фигуры', desc:'Anafora, chiasmo, climax', xp:170, type:'order' },
+    { id:'l62', emoji:'🌐', name:'Геополитика и цивилизации', desc:'Civiltà, egemonia globale, multipolarismo', xp:170, type:'mc' },
+    { id:'l63', emoji:'🗯️', name:'Метадискурс высшего уровня', desc:'Mutatis mutandis, grosso modo, a rigor di termini', xp:180, type:'fill' },
+  ]},
 ];
 const ACHIEVEMENTS = [
   { id:'first_lesson', icon:'🎓', name:'Первый урок', desc:'Завершил первый урок' },
@@ -7610,7 +7625,8 @@ const ACHIEVEMENTS = [
   { id:'level_a2',     icon:'🌟', name:'A2 достигнут', desc:'Переход на A2' },
   { id:'level_b1',     icon:'🚀', name:'B1 достигнут', desc:'Переход на B1' },
   { id:'level_b2',     icon:'💎', name:'B2 достигнут', desc:'Переход на B2' },
-  { id:'level_c1',     icon:'🏅', name:'C1 достигнут', desc:'Высший уровень!' },
+  { id:'level_c1',     icon:'🏅', name:'C1 достигнут', desc:'Продвинутый уровень' },
+{ id:'level_c2',     icon:'👑', name:'C2 достигнут', desc:'Совершенное владение языком — высший уровень!' },
 ];
 // ══════════════════════════════════════════════
 //  LEVELS
@@ -7621,6 +7637,7 @@ const LEVELS = [
   { id:'B1', name:'Intermedio',   ru:'Средний',       xpNeeded:3000, xpNext:7000  },
   { id:'B2', name:'Avanzato',     ru:'Выше среднего', xpNeeded:7000, xpNext:14000 },
   { id:'C1', name:'Avanzato+',    ru:'Продвинутый',   xpNeeded:14000,xpNext:25000 },
+  { id:'C2', name:'Maestria',     ru:'В совершенстве', xpNeeded:25000,xpNext:40000 },
 ];
 const LEVEL_ORDER = ['A1','A2','B1','B2','C1'];
 
@@ -8411,6 +8428,7 @@ function checkAchievements(lastQueueLen) {
     level_b1: state.xp >= 3000,
     level_b2: state.xp >= 7000,
     level_c1: state.xp >= 14000,
+    level_c2: state.xp >= 25000,
   };
   Object.entries(conds).forEach(([id, met]) => {
     if (met && !state.achievements.includes(id)) {
